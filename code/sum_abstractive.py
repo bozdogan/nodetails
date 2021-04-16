@@ -12,7 +12,7 @@ import preprocess
 
 # NOTE(bora): No Details: Essence of the text
 if __name__ == "__main__":
-    DATA_DIR = r"..\data\food_reviews"
+    DATA_DIR = "../data/food_reviews"
 
     # TODO(bora): Memory hatası alıyorum sürekli, çözemedim bir türlü.
     # Her şey çalışıyor ama tam sonucu görecekken hafızam bitiyor her halde anlamadım..
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 128  # NOTE(bora): Most efficient when it is a power of 2
 
     if 1:
-        data = pd.read_csv(rf"{DATA_DIR}\Reviews.csv", nrows=DATA_SIZE)
+        data = pd.read_csv(f"{DATA_DIR}/Reviews.csv", nrows=DATA_SIZE)
         MAX_LEN_TEXT = 80
         MAX_LEN_SUM = 10
 
