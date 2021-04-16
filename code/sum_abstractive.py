@@ -14,8 +14,8 @@ import preprocess
 if __name__ == "__main__":
     DATA_DIR = "../data/food_reviews"
 
-    # TODO(bora): Memory hatası alıyorum sürekli, çözemedim bir türlü.
-    # Her şey çalışıyor ama tam sonucu görecekken hafızam bitiyor her halde anlamadım..
+    # TODO(bora): Memory hatası alıyorum sürekli, çözemedim bir türlü. Her şey çalışıyor ama tam sonucu görecekken
+    # hafızam bitiyor her halde anlamadım..
     DATA_SIZE = 100000
     BATCH_SIZE = 128  # NOTE(bora): Most efficient when it is a power of 2
 
