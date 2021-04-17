@@ -21,7 +21,7 @@ if __name__ == "__main__":
         preprocess.prepare_dataset(data_file, nrows=DATA_SIZE,
                                    max_len_text=MAX_LEN_TEXT,
                                    max_len_sum=MAX_LEN_SUM,
-                                   verbose=False)
+                                   verbose=True)
 
     # NOTE(bora): Deep learning part
     model, parameters = nodetails.define_model(x_tokenizer, y_tokenizer,

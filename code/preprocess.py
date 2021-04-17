@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import os
 import re
 import bs4
@@ -43,10 +44,13 @@ def clean_summary(summary, contractions=_contractions_en):
 
 
 def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=False):
-    if os.path.exists(f"{datafile}-cache.gz"):
-        print("Cached data found")
-        print("Loading preprocessed file")
-        data = pd.read_pickle(f"{datafile}-cache.gz")
+    cachefile_name = f"{datafile}-cache.gz"
+    
+    if os.path.exists(cachefile_name):
+        if verbose:
+            print("Cached data found")
+            print("Loading preprocessed file")
+        data = pd.read_pickle(cachefile_name)
     else:
         data = pd.read_csv(datafile, nrows=nrows)
 
@@ -71,14 +75,16 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
         # NOTE(bora): Mark start and end of each summary
         data["cleaned_summary"] = data["cleaned_summary"].apply(lambda x: f"__START__ {x} __END__")
 
-        print("Saving preprocessed data to cache file")
-        data.to_pickle(f"{datafile}-cache.gz")
+        if verbose:
+            print("Saving preprocessed data to cache file")
+        data.to_pickle(cachefile_name)
 
     if verbose:
         for i in range(5):
-            print("Review:", data['cleaned_text'][i])
+            print("\nReview:", data['cleaned_text'][i])
             print("Summary:", data['cleaned_summary'][i])
-            print("\n")
+
+        print("\nCounting words")
 
     text_word_count = []
     for it in data["cleaned_text"]:
@@ -90,7 +96,11 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
 
     length_df = pd.DataFrame({"text": text_word_count, "summary": summary_word_count})
     if verbose:
+        print("Here are histograms")
         length_df.hist(bins=30)
+        plt.show()
+
+        print("Tokenizing")
 
     x_train, x_val, y_train, y_val = \
         train_test_split(data["cleaned_text"], data["cleaned_summary"],
@@ -111,6 +121,9 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
     y_val = y_tokenizer.texts_to_sequences(y_val)
     y_train = pad_sequences(y_train, maxlen=max_len_sum, padding="post")
     y_val = pad_sequences(y_val, maxlen=max_len_sum, padding="post")
+
+    if verbose:
+        print("Preprocessing is done\n")
 
     return (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer)
 
