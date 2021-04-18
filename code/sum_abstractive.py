@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 
 #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment this line to force CPU mode
