@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import layers
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, load_model as keras_load_model
 
 from attention_layer import Attention
 
@@ -197,7 +197,7 @@ def save_nodetails_model(model_params, save_location):
      reverse_target_word_index, reverse_source_word_index, target_word_index,
      max_len_text, max_len_sum) = model_params
 
-    # TODO(bora): Below methods don't work as intended.
+    # TODO(bora): Below methods still don't work as intended.
     encoder_model.save(f"{save_location}/encoder")
     decoder_model.save(f"{save_location}/decoder")
 
@@ -209,9 +209,11 @@ def save_nodetails_model(model_params, save_location):
 
 
 def load_nodetails_model(save_location):
-    # TODO(bora): Below methods don't work as intended.
-    encoder_model = tf.keras.models.load_model(f"{save_location}/encoder")
-    decoder_model = tf.keras.models.load_model(f"{save_location}/decoder")
+    # TODO(bora): Below methods still don't work as intended.
+    encoder_model = keras_load_model(f"{save_location}/encoder",
+                                     custom_objects={"attention_layer": Attention})
+    decoder_model = keras_load_model(f"{save_location}/decoder",
+                                     custom_objects={"attention_layer": Attention})
 
     with open(f"{save_location}/parameters.pkl", "rb") as fp:
         (reverse_target_word_index, reverse_source_word_index, target_word_index,
