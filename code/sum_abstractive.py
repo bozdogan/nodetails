@@ -12,7 +12,7 @@ if __name__ == "__main__":
     DATA_DIR = "../data/food_reviews"
     MODEL_DIR = "../models"
 
-    DATA_SIZE = 100000
+    DATA_SIZE = 10000
     BATCH_SIZE = 128  # NOTE(bora): Most efficient when it is a power of 2
 
     data_file = f"{DATA_DIR}/Reviews.csv"
@@ -41,14 +41,14 @@ if __name__ == "__main__":
     # The functions successfully save max lengths and tokens and whatnot but
     # cannot save and load the actual models. It is something to do with the
     # backend of Attention layer I suppose.
-    #save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
-    #model_params_prime = load_nodetails_model(f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
+    save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
+    model_params_prime = load_nodetails_model(f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
 
     print("LEN X TRAIN", len(x_train))
     print("LEN X VAL", len(x_val))
 
     test_validation_set(x_val, y_val, model_params,
-                        item_range=(4200, 4210),
+                        item_range=(42, 52),
                         debug_output=False)
 
     print("Done.")

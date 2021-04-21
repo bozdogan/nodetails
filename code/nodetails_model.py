@@ -21,7 +21,7 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum,latent_dim=
     tf.keras.backend.clear_session()
 
     enc_input = layers.Input(shape=(max_len_text,))
-    enc_embedding = layers.Embedding(x_voc_size, latent_dim, trainable=True)(enc_input)
+    enc_embedding = layers.Embedding(x_voc_size, latent_dim, trainable=True, input_shape=(max_len_text,))(enc_input)
 
     enc_lstm1 = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
     enc_lstm1_out, _, _ = enc_lstm1(enc_embedding)

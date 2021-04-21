@@ -79,13 +79,13 @@ def get_scores(sentences, word_frequencies):
 
 def extract(article_text):
     paragraphs = get_article_paragraphs(article_text)
-    stopwords = nltk.corpus._stopwords.words("english")
+    stopwords = nltk.corpus.stopwords.words("english")
     word_freq = get_frequencies(paragraphs, stopwords)
 
     sentences = get_sentences(paragraphs)
     scores = get_scores(sentences, word_freq)
 
-    return sentences, scores
+    return sentences, scores, word_freq
 
 
 def best_n_items(d: dict, n: int):
@@ -108,7 +108,7 @@ if  __name__ == "__main__":
     # scores = get_scores(sentences, word_frequencies)
     # summary = list(reversed(sorted(scores, key=scores.get)))[:7]
 
-    sentences, scores = extract(html)
+    sentences, scores, word_freq = extract(html)
     summary = best_n_items(scores, 7)
 
     # NOTE(bora): Sort by order of occurrence
