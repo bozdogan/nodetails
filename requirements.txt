@@ -2,10 +2,10 @@ beautifulsoup4
 Keras==2.4.3
 lxml
 matplotlib
-nltk
+#nltk
 numpy
 pandas
 scikit-learn
 #tensorboard==2.4.1
 tensorflow==2.4.1
-tensorflow-gpu==2.4.1
+#tensorflow-gpu==2.4.1
