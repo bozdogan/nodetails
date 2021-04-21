@@ -192,32 +192,47 @@ def test_validation_set(x_val, y_val, model_params, item_range=None, debug_outpu
         print("Predicted summary:", decode_seq(x_val[item]))
 
 
-def save_nodetails_model(model_params, save_location):
+def save_nodetails_model(model_params, save_location, debug_output=False):
     (encoder_model, decoder_model,
      reverse_target_word_index, reverse_source_word_index, target_word_index,
      max_len_text, max_len_sum) = model_params
+    if debug_output:
+        print(f"Saving model at {save_location}")
 
     # TODO(bora): Below methods still don't work as intended.
     encoder_model.save(f"{save_location}/encoder")
     decoder_model.save(f"{save_location}/decoder")
+    if debug_output:
+        print(f"Encoder and decoder is saved.")
 
     params = (reverse_target_word_index, reverse_source_word_index, target_word_index,
               max_len_text, max_len_sum)
 
     with open(f"{save_location}/parameters.pkl", "wb") as fp:
         pickle.dump(params, fp)
+    if debug_output:
+        print(f"Model saved")
 
 
-def load_nodetails_model(save_location):
+def load_nodetails_model(save_location, debug_output=False):
+    if debug_output:
+        print(f"Loading model from {save_location}")
+
     # TODO(bora): Below methods still don't work as intended.
     encoder_model = keras_load_model(f"{save_location}/encoder",
-                                     custom_objects={"attention_layer": Attention})
+                                     custom_objects={"attention_layer": Attention},
+                                     compile=False)
     decoder_model = keras_load_model(f"{save_location}/decoder",
-                                     custom_objects={"attention_layer": Attention})
+                                     custom_objects={"attention_layer": Attention},
+                                     compile=False)
+    if debug_output:
+        print(f"Encoder and decoder is loaded.")
 
     with open(f"{save_location}/parameters.pkl", "rb") as fp:
         (reverse_target_word_index, reverse_source_word_index, target_word_index,
          max_len_text, max_len_sum) = pickle.load(fp)
+    if debug_output:
+        print(f"Model loaded")
 
     return (encoder_model, decoder_model,
             reverse_target_word_index, reverse_source_word_index, target_word_index,

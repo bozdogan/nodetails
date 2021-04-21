@@ -25,7 +25,7 @@ if __name__ == "__main__":
         max_len_text=MAX_LEN_TEXT,
         max_len_sum=MAX_LEN_SUM,
         verbose=True,
-        show_histogram=True)
+        show_histogram=False)
 
     print("LEN X TRAIN", len(x_train))
     print("LEN X VAL", len(x_val))
@@ -44,10 +44,10 @@ if __name__ == "__main__":
     # The functions successfully save max lengths and tokens and whatnot but
     # cannot save and load the actual models. It is something to do with the
     # backend of Attention layer I suppose.
-    save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model")
-    model_params_prime = load_nodetails_model(f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model")
+    save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
+    model_params_prime = load_nodetails_model(f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
 
-    test_validation_set(x_val, y_val, model_params,
+    test_validation_set(x_val, y_val, model_params_prime,
                         item_range=(0, 10),
                         debug_output=False)
 
