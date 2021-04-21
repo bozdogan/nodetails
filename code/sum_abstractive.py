@@ -27,9 +27,6 @@ if __name__ == "__main__":
         verbose=True,
         show_histogram=False)
 
-    print("LEN X TRAIN", len(x_train))
-    print("LEN X VAL", len(x_val))
-
     # NOTE(bora): Deep learning part
     model, parameters = define_model(x_tokenizer, y_tokenizer,
                                      max_len_text=MAX_LEN_TEXT,
@@ -47,8 +44,11 @@ if __name__ == "__main__":
     #save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
     #model_params_prime = load_nodetails_model(f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
 
+    print("LEN X TRAIN", len(x_train))
+    print("LEN X VAL", len(x_val))
+
     test_validation_set(x_val, y_val, model_params,
-                        item_range=(42000, 42010),
+                        item_range=(4200, 4210),
                         debug_output=False)
 
     print("Done.")
