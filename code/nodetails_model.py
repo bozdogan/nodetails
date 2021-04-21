@@ -55,11 +55,9 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum,latent_dim=
     return model, parameters
 
 
-def train_model(model, model_params, training_data, validation_data,
-                latent_dim=500, batch_size=512, show_graph=True):
+def train_model(model, training_data, validation_data,
+                batch_size=512, show_graph=True):
     (x_train, y_train), (x_val, y_val) = training_data, validation_data
-    (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
-     dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
 
     model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy")
     es = EarlyStopping(monitor="val_loss", mode="min", verbose=1)
@@ -76,6 +74,13 @@ def train_model(model, model_params, training_data, validation_data,
         plt.plot(history.history["val_loss"], label="test")
         plt.legend()
         plt.show()
+
+    return model
+
+
+def prep_for_inference(model, model_params, latent_dim=500):
+    (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
+     dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
 
     # NOTE(bora): Encoder inference
     encoder_model = Model(inputs=enc_input, outputs=[enc_output, state_h, state_c])
