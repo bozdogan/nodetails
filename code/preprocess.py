@@ -43,7 +43,7 @@ def clean_summary(summary, contractions=_contractions_en):
     return result
 
 
-def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=False):
+def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=False, show_histogram=False):
     cachefile_name = f"{datafile}-cache.gz"
     
     if os.path.exists(cachefile_name):
@@ -95,7 +95,7 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
         summary_word_count.append(len(it.split()))
 
     length_df = pd.DataFrame({"text": text_word_count, "summary": summary_word_count})
-    if verbose:
+    if verbose > 2 or show_histogram:
         print("Here are histograms")
         length_df.hist(bins=30)
         plt.show()

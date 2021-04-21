@@ -54,11 +54,11 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum,latent_dim=
     return model, parameters
 
 
-def train_model(model, parameters, training_data, validation_data,
-                latent_dim=500, batch_size=512, verbose=True):
+def train_model(model, model_params, training_data, validation_data,
+                latent_dim=500, batch_size=512, show_graph=True):
     (x_train, y_train), (x_val, y_val) = training_data, validation_data
     (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
-     dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = parameters
+     dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
 
     model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy")
     es = EarlyStopping(monitor="val_loss", mode="min", verbose=1)
@@ -69,7 +69,7 @@ def train_model(model, parameters, training_data, validation_data,
                         validation_data=([x_val, y_val[:, :-1]],
                                          y_val.reshape(y_val.shape[0], y_val.shape[1], 1)[:, 1:]))
 
-    if verbose:
+    if show_graph:
         plt.plot(history.history["loss"], label="train")
         plt.plot(history.history["val_loss"], label="test")
         plt.legend()
@@ -105,64 +105,88 @@ def train_model(model, parameters, training_data, validation_data,
     reverse_source_word_index = x_tokenizer.index_word
     target_word_index = y_tokenizer.word_index
 
-    def decode_sequence(input_seq):
-        # Encode the input as state vectors.
-        enc_out, enc_h, enc_c = encoder_model.predict(input_seq)
-        if verbose > 2:
-            print("(input_seq, e_out)", (input_seq, enc_out))
-        # Generate empty target sequence of length 1.
+    return (encoder_model, decoder_model, reverse_target_word_index, reverse_source_word_index, target_word_index,
+            max_len_text, max_len_sum)
+
+
+def _seq2summary(input_seq, target_word_index, reverse_target_word_index):
+    result = []
+    for it in input_seq:
+        if (it != 0 and it != target_word_index["start"]) and it != target_word_index["end"]:
+            result.append(reverse_target_word_index[it])
+    return " ".join(result)
+
+
+def _seq2text(input_seq, reverse_source_word_index):
+    result = []
+    for it in input_seq:
+        if it != 0:
+            result.append(reverse_source_word_index[it])
+    return " ".join(result)
+
+
+def _decode_sequence(input_seq, model_params, debug_output=False):
+    (encoder_model, decoder_model,
+     reverse_target_word_index, reverse_source_word_index, target_word_index,
+     max_len_text, max_len_sum) = model_params
+
+    # Encode the input as state vectors.
+    enc_out, enc_h, enc_c = encoder_model.predict(input_seq)
+    if debug_output:
+        print("(input_seq, e_out)", (input_seq, enc_out))
+    # Generate empty target sequence of length 1.
+    target_seq = np.zeros((1, 1))
+
+    # Chose the "start" word as the first word of the target sequence
+    target_seq[0, 0] = target_word_index["start"]
+
+    _done = False
+    decoded_sentence = ""
+    while not _done:
+        output_tokens, h, c = decoder_model.predict([target_seq] + [enc_out, enc_h, enc_c])
+
+        # Sample a token
+        sampled_token_index = np.argmax(output_tokens[0, -1, :])
+        sampled_token = reverse_target_word_index[sampled_token_index]
+        if debug_output:
+            print("sampled_token", sampled_token)
+        if sampled_token != "end":
+            decoded_sentence += " " + sampled_token
+
+            # Exit condition: either hit max length or find stop word.
+        if sampled_token == "end" or len(decoded_sentence.split()) >= (max_len_sum - 1):
+            _done = True
+
+        # NOTE(bora): Update the target sequence and internal states
         target_seq = np.zeros((1, 1))
+        target_seq[0, 0] = sampled_token_index
+        enc_h, enc_c = h, c
 
-        # Chose the "start" word as the first word of the target sequence
-        target_seq[0, 0] = target_word_index["start"]
+    return decoded_sentence
 
-        _done = False
-        decoded_sentence = ""
-        while not _done:
-            output_tokens, h, c = decoder_model.predict([target_seq] + [enc_out, enc_h, enc_c])
 
-            # Sample a token
-            sampled_token_index = np.argmax(output_tokens[0, -1, :])
-            sampled_token = reverse_target_word_index[sampled_token_index]
-            if verbose > 2:
-                print("sampled_token", sampled_token)
-            if sampled_token != "end":
-                decoded_sentence += " " + sampled_token
+def test_validation_set(x_val, y_val, model_params, item_range=None, debug_output=False):
+    (encoder_model, decoder_model,
+     reverse_target_word_index, reverse_source_word_index, target_word_index,
+     max_len_text, max_len_sum) = model_params
 
-                # Exit condition: either hit max length or find stop word.
-            if sampled_token == "end" or len(decoded_sentence.split()) >= (max_len_sum - 1):
-                _done = True
+    def decode_seq(it):
+        return _decode_sequence(it.reshape(1, max_len_text), model_params, debug_output)
 
-            # NOTE(bora): Update the target sequence and internal states
-            target_seq = np.zeros((1, 1))
-            target_seq[0, 0] = sampled_token_index
-            enc_h, enc_c = h, c
+    if item_range:
+        range_lo, range_hi = min(item_range[0], 0), min(item_range[1], len(x_val))
 
-        return decoded_sentence
-
-    def seq2summary(input_seq):
-        result = []
-        for i in input_seq:
-            if (i != 0 and i != target_word_index["start"]) and i != target_word_index["end"]:
-                result.append(reverse_target_word_index[i])
-        return " ".join(result)
-
-    def seq2text(input_seq):
-        result = []
-        for i in input_seq:
-            if i != 0:
-                result.append(reverse_source_word_index[i])
-        return " ".join(result)
-
-    if verbose:
-        for i in range(len(x_val)):
-            print("Review:", seq2text(x_val[i]))
-            print("Original summary:", seq2summary(y_val[i]))
-            print("Predicted summary:", decode_sequence(x_val[i].reshape(1, max_len_text)))
-            print("\n")
-
-        print("Review:", seq2text(x_val[3]))
-        print("Original summary:", seq2summary(y_val[3]))
-        print("Predicted summary:", decode_sequence(x_val[3].reshape(1, max_len_text)))
+        for item in range(range_lo, range_hi):
+            print("\nReview:", _seq2text(x_val[item], reverse_source_word_index))
+            print("Original summary:", _seq2summary(y_val[item], target_word_index, reverse_target_word_index))
+            print("Predicted summary:", decode_seq(x_val[item]))
+    else:
+        from random import randint
+        item = randint(0, len(x_val) - 1)
+        print("\nItem #%d" % item)
+        print("-"*len("Item #%d" % item))
+        print("Review:", _seq2text(x_val[item], reverse_source_word_index))
+        print("Original summary:", _seq2summary(y_val[item], target_word_index, reverse_target_word_index))
+        print("Predicted summary:", decode_seq(x_val[item]))
 
 # END OF nodetails_model.py

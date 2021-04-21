@@ -3,7 +3,7 @@ import os
 
 #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment this line to force CPU mode
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-import nodetails_model as nodetails
+from nodetails_model import *
 import preprocess
 
 
@@ -18,20 +18,30 @@ if __name__ == "__main__":
     MAX_LEN_TEXT = 80
     MAX_LEN_SUM = 10
 
-    (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer) = \
-        preprocess.prepare_dataset(data_file, nrows=DATA_SIZE,
-                                   max_len_text=MAX_LEN_TEXT,
-                                   max_len_sum=MAX_LEN_SUM,
-                                   verbose=True)
+    (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer) = preprocess.prepare_dataset(
+        data_file, nrows=DATA_SIZE,
+        max_len_text=MAX_LEN_TEXT,
+        max_len_sum=MAX_LEN_SUM,
+        verbose=True,
+        show_histogram=True)
+
+    print("LEN X TRAIN", len(x_train))
+    print("LEN X VAL", len(x_val))
 
     # NOTE(bora): Deep learning part
-    model, parameters = nodetails.define_model(x_tokenizer, y_tokenizer,
-                                               max_len_text=MAX_LEN_TEXT,
-                                               max_len_sum=MAX_LEN_SUM)
+    model, parameters = define_model(x_tokenizer, y_tokenizer,
+                                     max_len_text=MAX_LEN_TEXT,
+                                     max_len_sum=MAX_LEN_SUM)
     model.summary()
 
-    nodetails.train_model(model, parameters, (x_train, y_train), (x_val, y_val),
-                          batch_size=BATCH_SIZE, verbose=True)
+    model_params = train_model(model, parameters,
+                               (x_train, y_train), (x_val, y_val),
+                               batch_size=BATCH_SIZE,
+                               show_graph=True)
+
+    test_validation_set(x_val, y_val, model_params,
+                        item_range=(0, 10),
+                        debug_output=False)
 
     print("Done.")
 
