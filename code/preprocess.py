@@ -98,7 +98,7 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
     if verbose > 2 or show_histogram:
         print("Here are histograms")
         length_df.hist(bins=30)
-        plt.show()
+        plt.show(block=True)
 
         print("Tokenizing")
 
