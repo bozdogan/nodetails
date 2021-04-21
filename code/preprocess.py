@@ -44,7 +44,7 @@ def clean_summary(summary, contractions=_contractions_en):
 
 
 def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=False, show_histogram=False):
-    cachefile_name = f"{datafile}-cache.gz"
+    cachefile_name = f"{datafile}-cache-{nrows}.gz"
     
     if os.path.exists(cachefile_name):
         if verbose:
