@@ -79,7 +79,12 @@ def train_model(model, training_data, validation_data,
 
 
 def prep_for_inference(model, model_params, latent_dim=500):
-    (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
+    # NOTE(bora): At this point I realized that the initial `model` that we trained
+    # has nothing to do with this "inference network". So, we don't need to save
+    # "the model" itself, we build a new network anyway, just saving/loading these
+    # state variables would be enough.
+    (x_tokenizer, y_tokenizer,
+     max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
 
     # NOTE(bora): Encoder inference
