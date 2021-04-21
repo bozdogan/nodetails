@@ -108,7 +108,7 @@ def train_model(model, parameters, training_data, validation_data,
     def decode_sequence(input_seq):
         # Encode the input as state vectors.
         enc_out, enc_h, enc_c = encoder_model.predict(input_seq)
-        if verbose:
+        if verbose > 2:
             print("(input_seq, e_out)", (input_seq, enc_out))
         # Generate empty target sequence of length 1.
         target_seq = np.zeros((1, 1))
@@ -124,7 +124,7 @@ def train_model(model, parameters, training_data, validation_data,
             # Sample a token
             sampled_token_index = np.argmax(output_tokens[0, -1, :])
             sampled_token = reverse_target_word_index[sampled_token_index]
-            if verbose:
+            if verbose > 2:
                 print("sampled_token", sampled_token)
             if sampled_token != "end":
                 decoded_sentence += " " + sampled_token
