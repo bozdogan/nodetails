@@ -1,11 +1,12 @@
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
 
 from attention_layer import Attention
-import numpy as np
-import matplotlib.pyplot as plt
 
 _gpus = tf.config.list_physical_devices("GPU")
 if _gpus:
@@ -70,6 +71,7 @@ def train_model(model, model_params, training_data, validation_data,
                                          y_val.reshape(y_val.shape[0], y_val.shape[1], 1)[:, 1:]))
 
     if show_graph:
+        plt.figure()
         plt.plot(history.history["loss"], label="train")
         plt.plot(history.history["val_loss"], label="test")
         plt.legend()
@@ -188,5 +190,35 @@ def test_validation_set(x_val, y_val, model_params, item_range=None, debug_outpu
         print("Review:", _seq2text(x_val[item], reverse_source_word_index))
         print("Original summary:", _seq2summary(y_val[item], target_word_index, reverse_target_word_index))
         print("Predicted summary:", decode_seq(x_val[item]))
+
+
+def save_nodetails_model(model_params, save_location):
+    (encoder_model, decoder_model,
+     reverse_target_word_index, reverse_source_word_index, target_word_index,
+     max_len_text, max_len_sum) = model_params
+
+    # TODO(bora): Below methods don't work as intended.
+    encoder_model.save(f"{save_location}/encoder")
+    decoder_model.save(f"{save_location}/decoder")
+
+    params = (reverse_target_word_index, reverse_source_word_index, target_word_index,
+              max_len_text, max_len_sum)
+
+    with open(f"{save_location}/parameters.pkl", "wb") as fp:
+        pickle.dump(params, fp)
+
+
+def load_nodetails_model(save_location):
+    # TODO(bora): Below methods don't work as intended.
+    encoder_model = tf.keras.models.load_model(f"{save_location}/encoder")
+    decoder_model = tf.keras.models.load_model(f"{save_location}/decoder")
+
+    with open(f"{save_location}/parameters.pkl", "rb") as fp:
+        (reverse_target_word_index, reverse_source_word_index, target_word_index,
+         max_len_text, max_len_sum) = pickle.load(fp)
+
+    return (encoder_model, decoder_model,
+            reverse_target_word_index, reverse_source_word_index, target_word_index,
+            max_len_text, max_len_sum)
 
 # END OF nodetails_model.py
