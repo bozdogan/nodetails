@@ -183,7 +183,7 @@ def test_validation_set(x_val, y_val, model_params, item_range=None, debug_outpu
 
     if item_range:
         range_lo = max(0, min(item_range[0], len(x_val)))
-        range_hi = max(item_range[1], len(x_val))
+        range_hi = min(item_range[1], len(x_val))
 
         for item in range(range_lo, range_hi):
             print("\nReview:", _seq2text(x_val[item], reverse_source_word_index))
