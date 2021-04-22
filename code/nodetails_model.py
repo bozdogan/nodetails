@@ -206,7 +206,6 @@ def save_nodetails_model(model_params, save_location, debug_output=False):
     if debug_output:
         print(f"Saving model at {save_location}")
 
-    #
     encoder_model.save(f"{save_location}/encoder")
     decoder_model.save(f"{save_location}/decoder")
     if debug_output:
@@ -225,7 +224,6 @@ def load_nodetails_model(save_location, debug_output=False):
     if debug_output:
         print(f"Loading model from {save_location}")
 
-    # TODO(bora): Kafama sıçayım..
     encoder_model = keras_load_model(f"{save_location}/encoder",
                                      custom_objects={"Attention": Attention},
                                      compile=False)

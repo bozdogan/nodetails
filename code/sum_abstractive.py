@@ -12,7 +12,7 @@ if __name__ == "__main__":
     DATA_DIR = "../data/food_reviews"
     MODEL_DIR = "../models"
 
-    DATA_SIZE = 1000
+    DATA_SIZE = 100000
     BATCH_SIZE = 128  # NOTE(bora): Most efficient when it is a power of 2
 
     data_file = f"{DATA_DIR}/Reviews.csv"
@@ -28,24 +28,24 @@ if __name__ == "__main__":
         show_histogram=False)
 
     # NOTE(bora): Deep learning part
-    model, parameters = define_model(x_tokenizer, y_tokenizer,
-                                     max_len_text=MAX_LEN_TEXT,
-                                     max_len_sum=MAX_LEN_SUM)
-    model.summary()
-
-    model = train_model(model,
-                        (x_train, y_train), (x_val, y_val),
-                        batch_size=BATCH_SIZE,
-                        show_graph=True)
-    model_params = prep_for_inference(model, parameters)
-
-    # NOTE(bora): model_params_prime is not the same with model_params.
-    # The functions successfully save max lengths and tokens and whatnot but
-    # cannot save and load the actual models. It is something to do with the
-    # backend of Attention layer I suppose.
+    # model, parameters = define_model(x_tokenizer, y_tokenizer,
+    #                                  max_len_text=MAX_LEN_TEXT,
+    #                                  max_len_sum=MAX_LEN_SUM)
+    # model.summary()
     #
-    # I don't know what the hell is wrong with this..
-    save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
+    # model = train_model(model,
+    #                     (x_train, y_train), (x_val, y_val),
+    #                     batch_size=BATCH_SIZE,
+    #                     show_graph=True)
+    # model_params = prep_for_inference(model, parameters)
+    #
+    # # NOTE(bora): model_params_prime is not the same with model_params.
+    # # The functions successfully save max lengths and tokens and whatnot but
+    # # cannot save and load the actual models. It is something to do with the
+    # # backend of Attention layer I suppose.
+    # #
+    # # I don't know what the hell is wrong with this..
+    # save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
     model_params_prime = load_nodetails_model(f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
 
     print("LEN X TRAIN", len(x_train))
