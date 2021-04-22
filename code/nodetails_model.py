@@ -73,16 +73,12 @@ def train_model(model, training_data, validation_data,
         plt.plot(history.history["loss"], label="train")
         plt.plot(history.history["val_loss"], label="test")
         plt.legend()
-        plt.show()
+        plt.show(block=True)
 
     return model
 
 
 def prep_for_inference(model, model_params, latent_dim=500):
-    # NOTE(bora): This didn't work
-    #
-    #
-    #
     (x_tokenizer, y_tokenizer,
      max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
@@ -210,7 +206,7 @@ def save_nodetails_model(model_params, save_location, debug_output=False):
     if debug_output:
         print(f"Saving model at {save_location}")
 
-    # TODO(bora): Below methods still don't work as intended.
+    #
     encoder_model.save(f"{save_location}/encoder")
     decoder_model.save(f"{save_location}/decoder")
     if debug_output:
@@ -229,12 +225,12 @@ def load_nodetails_model(save_location, debug_output=False):
     if debug_output:
         print(f"Loading model from {save_location}")
 
-    # TODO(bora): Below methods still don't work as intended.
+    # TODO(bora): Kafama sıçayım..
     encoder_model = keras_load_model(f"{save_location}/encoder",
-                                     custom_objects={"attention_layer": Attention},
+                                     custom_objects={"Attention": Attention},
                                      compile=False)
     decoder_model = keras_load_model(f"{save_location}/decoder",
-                                     custom_objects={"attention_layer": Attention},
+                                     custom_objects={"Attention": Attention},
                                      compile=False)
     if debug_output:
         print(f"Encoder and decoder is loaded.")
