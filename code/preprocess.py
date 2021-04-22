@@ -32,7 +32,7 @@ def clean_text(articletext, stopwords=_stopwords_en, contractions=_contractions_
 def clean_summary(summary, contractions=_contractions_en):
     summary = re.sub("\"", "", summary)  # NOTE(bora): Remove quotation marks
     summary = " ".join([contractions[it] if it in contractions else it for it in
-                        summary.split(" ")])  # NOTE(bora): Remove contractions
+                        summary.split(" ")])  # NOTE(bora): Expand contractions
     summary = re.sub(r"'s\b", "", summary)  # NOTE(bora): Remove trailing "'s"s
     summary = re.sub(r"[^a-zA-z]", " ", summary)
     summary = summary.lower()

@@ -20,12 +20,12 @@ if __name__ == "__main__":
     MAX_LEN_SUM = 10
     MODEL_NAME = f"nodetails--{MAX_LEN_TEXT}-{MAX_LEN_SUM}-{BATCH_SIZE}"
 
-    (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer) = preprocess.prepare_dataset(
-        data_file, nrows=DATA_SIZE,
-        max_len_text=MAX_LEN_TEXT,
-        max_len_sum=MAX_LEN_SUM,
-        verbose=True,
-        show_histogram=False)
+    (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer) = \
+        preprocess.prepare_dataset(data_file, nrows=DATA_SIZE,
+                                   max_len_text=MAX_LEN_TEXT,
+                                   max_len_sum=MAX_LEN_SUM,
+                                   verbose=True,
+                                   show_histogram=False)
 
     # NOTE(bora): Deep learning part. Change below if statement to choose
     # between training or loading the model. Arayüz yazmaya üşendim bunun için :/
