@@ -6,7 +6,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 
-from attention_layer import Attention
+from nodetails.attention import Attention
 
 _gpus = tf.config.list_physical_devices("GPU")
 if _gpus:

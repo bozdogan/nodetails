@@ -3,8 +3,8 @@ import os
 
 #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails_model import *
-import preprocess
+from nodetails.model import *
+from nodetails.util import prepare_dataset
 
 
 # NOTE(bora): No Details: Essence of the text
@@ -21,11 +21,11 @@ if __name__ == "__main__":
     MODEL_NAME = f"nodetails--{DATASET_NAME}--{MAX_LEN_TEXT}-{MAX_LEN_SUM}--{INPUT_SIZE}"
 
     (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer) = \
-        preprocess.prepare_dataset(input_file, nrows=INPUT_SIZE,
-                                   max_len_text=MAX_LEN_TEXT,
-                                   max_len_sum=MAX_LEN_SUM,
-                                   verbose=True,
-                                   show_histogram=False)
+            prepare_dataset(input_file, nrows=INPUT_SIZE,
+                            max_len_text=MAX_LEN_TEXT,
+                            max_len_sum=MAX_LEN_SUM,
+                            verbose=True,
+                            show_histogram=False)
 
     # NOTE(bora): Deep learning part
     if not "train from scratch":
