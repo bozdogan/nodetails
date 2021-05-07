@@ -99,7 +99,6 @@ def score_sentences(sentences):
             for word in nltk.word_tokenize(sent.lower()):
                 update_score(scores, key, word, sent)
 
-
     return scores
 
 

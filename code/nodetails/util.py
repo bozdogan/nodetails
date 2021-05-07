@@ -17,9 +17,10 @@ with open("../include/contraction_mapping_en.txt") as f:
 def clean_text(articletext, stopwords=_stopwords_en, contractions=_contractions_en):
     articletext = bs4.BeautifulSoup(articletext.lower(), "lxml").text
     articletext = re.sub(r"\([^)]*\)", "", articletext)  # NOTE(bora): Remove any parentheses and text between them
+    
     articletext = re.sub("\"", "", articletext)  # NOTE(bora): Remove quotation marks
     articletext = " ".join([contractions[it] if it in contractions else it for it in
-                            articletext.split(" ")])  # NOTE(bora): Remove contractions
+                            articletext.split(" ")])  # NOTE(bora): Expand contractions
     articletext = re.sub(r"'s\b", "", articletext)  # NOTE(bora): Remove trailing "'s"s
 
     articletext = re.sub(r"[^a-zA-z]", " ", articletext)

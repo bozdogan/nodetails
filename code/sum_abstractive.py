@@ -21,9 +21,10 @@ if __name__ == "__main__":
     MODEL_NAME = f"nodetails--{DATASET_NAME}--{MAX_LEN_TEXT}-{MAX_LEN_SUM}--{INPUT_SIZE}"
 
     (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer) = \
-            prepare_dataset(input_file, nrows=INPUT_SIZE,
+            prepare_dataset(input_file,
                             max_len_text=MAX_LEN_TEXT,
                             max_len_sum=MAX_LEN_SUM,
+                            nrows=INPUT_SIZE,
                             verbose=True,
                             show_histogram=False)
 

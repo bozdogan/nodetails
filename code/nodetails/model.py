@@ -49,7 +49,8 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum,latent_dim=
     dec_output = dec_dense(dec_concat_input)
 
     model = Model([enc_input, dec_input], dec_output)
-    parameters = (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
+    parameters = (x_tokenizer, y_tokenizer, max_len_text, max_len_sum,
+                  enc_input, enc_output, state_h, state_c,
                   dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
 
     return model, parameters
@@ -80,7 +81,8 @@ def train_model(model, training_data, validation_data,
 
 def prep_for_inference(model, model_params, latent_dim=500):
     (x_tokenizer, y_tokenizer,
-     max_len_text, max_len_sum, enc_input, enc_output, state_h, state_c,
+     max_len_text, max_len_sum,
+     enc_input, enc_output, state_h, state_c,
      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
 
     # NOTE(bora): Encoder inference
