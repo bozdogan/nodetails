@@ -123,4 +123,4 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
 
     return (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer)
 
-# END OF preprocess.py
+# END OF util.py

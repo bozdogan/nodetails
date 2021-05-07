@@ -243,4 +243,4 @@ def load_nodetails_model(save_location, debug_output=False):
             reverse_target_word_index, reverse_source_word_index, target_word_index,
             max_len_text, max_len_sum)
 
-# END OF nodetails_model.py
+# END OF model.py

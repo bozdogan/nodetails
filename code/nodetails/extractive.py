@@ -123,3 +123,4 @@ if __name__ == "__main__":
     print("\n\n   == SUMMARY ==\n")
     print("\n".join(summary))
 
+# END OF extractive.py
