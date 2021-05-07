@@ -8,9 +8,9 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-with open("corpora/stopwords/english") as f:
+with open("../include/stopwords/english") as f:
     _stopwords_en = tuple([line for line in f.read().split("\n") if line])
-with open("corpora/contraction_mapping_en.txt") as f:
+with open("../include/contraction_mapping_en.txt") as f:
     _contractions_en = dict([(line.split(",")) for line in f.read().split("\n")])
 
 
@@ -80,10 +80,6 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
         data.to_pickle(cachefile_name)
 
     if verbose:
-        for i in range(5):
-            print("\nReview:", data['cleaned_text'][i])
-            print("Summary:", data['cleaned_summary'][i])
-
         print("\nCounting words")
 
     text_word_count = []

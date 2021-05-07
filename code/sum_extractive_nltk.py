@@ -93,7 +93,7 @@ def best_n_items(d: dict, n: int):
 
 
 if  __name__ == "__main__":
-    article_url = "https://en.wikipedia.org/wiki/Artificial_intelligence"
+    article_url = "https://en.wikipedia.org/wiki/Object-oriented_programming"
     print("Fetching article")
     html = read_from_web(article_url)
     # print("Cleaning article body")

@@ -9,27 +9,26 @@ import preprocess
 
 # NOTE(bora): No Details: Essence of the text
 if __name__ == "__main__":
-    DATA_DIR = "../data/food_reviews"
-    MODEL_DIR = "../models"
+    DATA_DIR = "../data"
+    MODEL_SAVE_DIR = "../data/_models"
 
-    DATA_SIZE = 100000
-    BATCH_SIZE = 128  # NOTE(bora): Most efficient when it is a power of 2
+    DATASET_NAME = "food_reviews"
+    input_file = f"{DATA_DIR}/food_reviews/Reviews.csv"
+    INPUT_SIZE = None  # NOTE(bora): Import entire dataset if set to None
 
-    data_file = f"{DATA_DIR}/Reviews.csv"
     MAX_LEN_TEXT = 80
     MAX_LEN_SUM = 10
-    MODEL_NAME = f"nodetails--{MAX_LEN_TEXT}-{MAX_LEN_SUM}-{BATCH_SIZE}"
+    MODEL_NAME = f"nodetails--{DATASET_NAME}--{MAX_LEN_TEXT}-{MAX_LEN_SUM}--{INPUT_SIZE}"
 
     (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer) = \
-        preprocess.prepare_dataset(data_file, nrows=DATA_SIZE,
+        preprocess.prepare_dataset(input_file, nrows=INPUT_SIZE,
                                    max_len_text=MAX_LEN_TEXT,
                                    max_len_sum=MAX_LEN_SUM,
                                    verbose=True,
                                    show_histogram=False)
 
-    # NOTE(bora): Deep learning part. Change below if statement to choose
-    # between training or loading the model. Arayüz yazmaya üşendim bunun için :/
-    if 2 + 2 == 5:
+    # NOTE(bora): Deep learning part
+    if not "train from scratch":
         model, parameters = define_model(x_tokenizer, y_tokenizer,
                                          max_len_text=MAX_LEN_TEXT,
                                          max_len_sum=MAX_LEN_SUM)
@@ -37,13 +36,12 @@ if __name__ == "__main__":
 
         model = train_model(model,
                             (x_train, y_train), (x_val, y_val),
-                            batch_size=BATCH_SIZE,
+                            batch_size=128,
                             show_graph=True)
         model_params = prep_for_inference(model, parameters)
-        save_nodetails_model(model_params, f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
+        save_nodetails_model(model_params, f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
     else:
-        # NOTE(bora): It works fine now! Make sure you put the model to the correct path.
-        model_params = load_nodetails_model(f"{MODEL_DIR}/{MODEL_NAME}-{DATA_SIZE}.model", debug_output=True)
+        model_params = load_nodetails_model(f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
 
     print("LEN X TRAIN", len(x_train))
     print("LEN X VAL", len(x_val))
