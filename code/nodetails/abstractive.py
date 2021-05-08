@@ -199,7 +199,8 @@ def _decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=F
     return decoded_sentence
 
 
-def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_range=None, debug_output=False, silent=False):
+def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_range=None,
+                        debug_output=False, silent=False):
     if silent: debug_output = False
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
@@ -313,7 +314,8 @@ def make_inference(infr_params: InferenceParameters, query: str, verbose=True):
     sum_pred = decode_seq(query_seq)
 
     if verbose:
-        print("\n == INFERENCE ==")
+        print("\n == INFERENCE ==\n")
+        
         print("Query:", query)
         print("\nquery_cleaned:", query_cleaned)
         print("\nSummary:", sum_pred)

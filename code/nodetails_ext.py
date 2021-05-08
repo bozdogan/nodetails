@@ -7,8 +7,8 @@ if __name__ == "__main__":
     for it in extsum.reference:
         print(it, extsum.sentences[it])
 
-
     print("\n  == SUMMARY ==\n")
     print(extsum.summary)
+    print("\nWord count:", len(extsum.summary.split()))
 
 # END OF nodetails_ext.py

@@ -10,6 +10,7 @@ ExtractiveSummary = namedtuple(
     ["summary", "reference", "sentences", "paragraphs"])
 
 
+# TODO(bora): `preset` parameter needs to be some kind of enum.
 def split_paragraphs(html, preset="wikipedia"):
     article_parsed = BeautifulSoup(html, "lxml")
 
@@ -113,17 +114,17 @@ def _get_best_items(a_dict, n: int):
     return list(reversed(sorted(a_dict, key=a_dict.get)))[:n]
 
 
-def get_summary_from_url(article_url, length=7, preprocessing_preset="wikipedia"):
+def get_summary_from_url(article_url, length=7, preset="wikipedia"):
     """Get the summary from given url."""
 
     html = _fetch_article(article_url)
-    return get_summary(html, length, preprocessing_preset)
+    return get_summary(html, length, preset)
 
 
-def get_summary(article, length=7, preprocessing_preset="wikipedia"):
+def get_summary(article, length=7, preset="wikipedia"):
     """Get the summary from given text (HTML formatted)."""
     
-    paragraphs = split_paragraphs(article, preprocessing_preset)
+    paragraphs = split_paragraphs(article, preset)
     sentences = tag_sentences(paragraphs)
 
     scores = score_sentences(sentences)

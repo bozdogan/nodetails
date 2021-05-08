@@ -4,7 +4,7 @@ if __name__ == "__main__":
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
 
 from nodetails import abstractive
-from nodetails.integration import IntegratedSummarizer
+from nodetails.integration import summary_from_wikipedia
 
 
 """ No Details: Essence of the text """
@@ -13,8 +13,7 @@ if __name__ == "__main__":
     model_name = f"nodetails--food_reviews--80-10--None"
     # NOTE(bora): Assumed the model is already trained.
     infr_params = abstractive.load(f"{model_dir}/{model_name}.model", debug_output=True)
-    
-    summarizer = IntegratedSummarizer(infr_params)
-    summary = summarizer.from_wikipedia_article("https://en.wikipedia.org/wiki/Amazon_Fresh")
+
+    summary = summary_from_wikipedia("https://en.wikipedia.org/wiki/Amazon_Fresh", infr_params)
 
 # END OF integrated_sum.py
