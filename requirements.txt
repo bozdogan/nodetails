@@ -2,8 +2,8 @@ beautifulsoup4
 Keras==2.4.3
 lxml
 matplotlib
-#nltk
-numpy
+nltk
+numpy==1.19.5
 pandas
 scikit-learn
 #tensorboard==2.4.1

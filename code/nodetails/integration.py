@@ -1,7 +1,7 @@
 if __name__ == "__main__":
     import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import model
-from nodetails.model import InferenceParameters
+from nodetails import abstractive
+from nodetails.abstractive import InferenceParameters
 from nodetails.extractive import *
 
 ExtractiveSummary = namedtuple(
@@ -28,7 +28,7 @@ class IntegratedSummarizer:
 
     def from_wikipedia_article(self, article_url):
         extsum = self._extractive_wikipedia(article_url, 10)
-        abstsum = model.inference(self.abst_model, extsum.summary)
+        abstsum = abstractive.make_inference(self.abst_model, extsum.summary)
 
         return abstsum
 
@@ -36,7 +36,7 @@ class IntegratedSummarizer:
 if __name__ == "__main__":
     model_dir = "../../data/_models"
     model_name = f"nodetails--food_reviews--80-10--100000"
-    infr_params = model.load_nodetails_model(f"{model_dir}/{model_name}.model")
+    infr_params = abstractive.load(f"{model_dir}/{model_name}.model")
     
     summarizer = IntegratedSummarizer(infr_params)
     summary = summarizer.from_wikipedia_article("https://en.wikipedia.org/wiki/Citation_needed")
