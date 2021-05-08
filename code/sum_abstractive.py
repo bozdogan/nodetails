@@ -29,19 +29,19 @@ if __name__ == "__main__":
                             show_histogram=False)
 
     # NOTE(bora): Deep learning part
-    if not "train from scratch":
-        parameters = define_model(x_tokenizer, y_tokenizer,
+    if 0:
+        model_params = define_model(x_tokenizer, y_tokenizer,
                                          max_len_text=MAX_LEN_TEXT,
                                          max_len_sum=MAX_LEN_SUM)
 
-        model = train_model(parameters,
+        model = train_model(model_params,
                             (x_train, y_train), (x_val, y_val),
                             batch_size=128,
                             show_graph=True)
 
         model.summary()
 
-        infr_params = prep_for_inference(parameters)
+        infr_params = prep_for_inference(model_params)
         #save_nodetails_model(infr_params, f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
     else:
         infr_params = load_nodetails_model(f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
