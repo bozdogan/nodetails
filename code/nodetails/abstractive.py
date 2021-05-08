@@ -320,4 +320,6 @@ def make_inference(infr_params: InferenceParameters, query: str, verbose=True):
         print("\nquery_cleaned:", query_cleaned)
         print("\nSummary:", sum_pred)
 
+    return sum_pred
+
 # END OF abstractive.py

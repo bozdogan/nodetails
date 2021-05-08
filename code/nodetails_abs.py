@@ -4,7 +4,7 @@ if __name__ == "__main__":
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
 
-from nodetails.abstractive import *
+from nodetails import abstractive
 from nodetails.util import prepare_dataset
 
 
@@ -42,9 +42,9 @@ if __name__ == "__main__":
         model.summary()
 
         infr_params = prep_model_for_inference(model_params)
-        save_nodetails_model(infr_params, f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
+        abstractive.save(infr_params, f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
     else:
-        infr_params = load(f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
+        infr_params = abstractive.load(f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
 
     print("LEN X TRAIN", len(x_train))
     print("LEN X VAL", len(x_val))
