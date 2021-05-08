@@ -153,7 +153,7 @@ def _seq2text(input_seq, x_index_word):
     return " ".join(result)
 
 
-def _decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=False):
+def decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=False):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
@@ -162,18 +162,15 @@ def _decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=F
     enc_out, enc_h, enc_c = encoder_model.predict(input_seq)
     if debug_output:
         print("(input_seq, e_out)", (input_seq, enc_out))
-    # Generate empty target sequence of length 1.
-    target_seq = np.zeros((1, 1))
 
-    # Chose the "start" word as the first word of the target sequence
-    target_seq[0, 0] = y_word_index["start"]
+    target_seq = np.zeros((1, 1))  # Generate empty target sequence
+    target_seq[0, 0] = y_word_index["start"]  # Set "start" as the first word of the target sequence
 
     _done = False
     decoded_sentence = ""
     while not _done:
         output_tokens, h, c = decoder_model.predict([target_seq] + [enc_out, enc_h, enc_c])
 
-        # Sample a token
         sampled_token_index = np.argmax(output_tokens[0, -1, :])
         if sampled_token_index == 0:
             # NOTE(bora): 0 is selected as sequence index. Probably because model is
@@ -187,11 +184,11 @@ def _decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=F
         if sampled_token != "end":
             decoded_sentence += " " + sampled_token
 
-            # Exit condition: either hit max length or find stop word.
+            # Exit condition. Either hit max length or find "end"
         if sampled_token == "end" or len(decoded_sentence.split()) >= (max_len_sum - 1):
             _done = True
 
-        # NOTE(bora): Update the target sequence and internal states
+        # Update the target sequence and internal states
         target_seq = np.zeros((1, 1))
         target_seq[0, 0] = sampled_token_index
         enc_h, enc_c = h, c
@@ -207,7 +204,7 @@ def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_ran
      max_len_text, max_len_sum) = infr_params
 
     def decode_validation_seq(it):
-        result = _decode_sequence(x_val[it].reshape(1, max_len_text), infr_params, debug_output)
+        result = decode_sequence(x_val[it].reshape(1, max_len_text), infr_params, debug_output)
         assert result, f"Empty result of type {type(result)} at item #{it}"
         return result
 
@@ -238,16 +235,16 @@ def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_ran
             print("Predicted summary:", sum_pred)
 
 
-def save(infr_params: InferenceParameters, save_location, debug_output=False):
+def save(infr_params: InferenceParameters, save_location, verbose=True):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
-    if debug_output:
+    if verbose:
         print(f"Saving model at {save_location}")
 
     encoder_model.save(f"{save_location}/encoder")
     decoder_model.save(f"{save_location}/decoder")
-    if debug_output:
+    if verbose:
         print(f"Encoder and decoder is saved.")
 
     params = (y_index_word, x_index_word, y_word_index,
@@ -255,12 +252,12 @@ def save(infr_params: InferenceParameters, save_location, debug_output=False):
 
     with open(f"{save_location}/parameters.pkl", "wb") as fp:
         pickle.dump(params, fp)
-    if debug_output:
+    if verbose:
         print(f"Model saved")
 
 
-def load(save_location, debug_output=False):
-    if debug_output:
+def load(save_location, verbose=True):
+    if verbose:
         print(f"Loading model from {save_location}")
 
     encoder_model = keras_load_model(f"{save_location}/encoder",
@@ -269,13 +266,13 @@ def load(save_location, debug_output=False):
     decoder_model = keras_load_model(f"{save_location}/decoder",
                                      custom_objects={"Attention": Attention},
                                      compile=False)
-    if debug_output:
+    if verbose:
         print(f"Encoder and decoder is loaded.")
 
     with open(f"{save_location}/parameters.pkl", "rb") as fp:
         (y_index_word, x_index_word, y_word_index,
          max_len_text, max_len_sum) = pickle.load(fp)
-    if debug_output:
+    if verbose:
         print(f"Model loaded")
 
     return InferenceParameters(encoder_model, decoder_model,
@@ -287,12 +284,7 @@ def make_inference(infr_params: InferenceParameters, query: str, verbose=True):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
-
-    def decode_seq(it):
-        result = _decode_sequence(it.reshape(1, max_len_text), infr_params)
-        assert result, f"Empty result of type {type(result)} at inference"
-        return result
-
+    
     x_word_index = {v: k for k, v in x_index_word.items()}
     
     def convert_to_sequences(words):
@@ -311,15 +303,17 @@ def make_inference(infr_params: InferenceParameters, query: str, verbose=True):
     query_cleaned = nodetails.util.clean_text(query)
 
     query_seq = convert_to_sequences(query_cleaned.split())
-    sum_pred = decode_seq(query_seq)
+    prediction = decode_sequence(query_seq.reshape(1, max_len_text), infr_params)
+
+    assert prediction, f"Empty result of type {type(prediction)} at inference"
 
     if verbose:
         print("\n == INFERENCE ==\n")
         
         print("Query:", query)
         print("\nquery_cleaned:", query_cleaned)
-        print("\nSummary:", sum_pred)
+        print("\nSummary:", prediction)
 
-    return sum_pred
+    return prediction
 
-# END OF abstractive.py
+# END OF sequence_model.py
