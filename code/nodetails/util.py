@@ -8,9 +8,12 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-with open("../include/stopwords/english") as f:
+_INCLUDE_DIR = f"{ os.path.dirname(__file__)}/../../include".replace("\\", "/")
+
+with open(f"{_INCLUDE_DIR}/stopwords/english") as f:
     _stopwords_en = tuple([line for line in f.read().split("\n") if line])
-with open("../include/contraction_mapping_en.txt") as f:
+
+with open(f"{_INCLUDE_DIR}/contraction_mapping_en.txt") as f:
     _contractions_en = dict([(line.split(",")) for line in f.read().split("\n")])
 
 

@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import namedtuple, OrderedDict
 import re
 from urllib import request
 from bs4 import BeautifulSoup
@@ -97,7 +97,8 @@ def score_sentences(sentences):
     else:
         for key, sent in enumerate(sentences):
             for word in nltk.word_tokenize(sent.lower()):
-                update_score(scores, key, word, sent)
+                # NOTE(bora): If sentence references are ditched then the key is sentence itself.
+                update_score(scores, sent, word, sent)
 
     return scores
 

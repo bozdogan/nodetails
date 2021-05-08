@@ -280,7 +280,7 @@ def load_nodetails_model(save_location, debug_output=False):
                                max_len_text, max_len_sum)
 
 
-def inference(infr_params: InferenceParameters, query: str):
+def inference(infr_params: InferenceParameters, query: str, verbose=True):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
@@ -311,8 +311,10 @@ def inference(infr_params: InferenceParameters, query: str):
     #review = _seq2text(x_val[item], x_index_word)
     sum_pred = decode_seq(query_seq)
 
-    print("\nQuery:", query)
-    print("query_cleaned: %s" % query_cleaned)
-    print("Predicted summary:",sum_pred)
+    if verbose:
+        print(" == INFERENCE ==")
+        print("\nQuery:", query)
+        print("query_cleaned: %s" % query_cleaned)
+        print("Predicted summary:",sum_pred)
 
 # END OF model.py
