@@ -16,12 +16,14 @@ if _gpus:
         tf.config.experimental.set_memory_growth(it, True)
 
 
-ModelParameters = namedtuple("ModelParameters",
+ModelParameters = namedtuple(
+    "ModelParameters",
     ["x_tokenizer", "y_tokenizer", "max_len_text", "max_len_sum", "latent_dim",
      "enc_input", "enc_output", "state_h", "state_c",
      "dec_input", "dec_output", "dec_embedding", "dec_lstm", "dec_dense", "attn"])
 
-InferenceParameters = namedtuple("InferenceParameters",
+InferenceParameters = namedtuple(
+    "InferenceParameters",
     ["encoder_model", "decoder_model",
      "y_index_word", "x_index_word", "y_word_index",
      "max_len_text", "max_len_sum"])
@@ -311,9 +313,9 @@ def make_inference(infr_params: InferenceParameters, query: str, verbose=True):
     sum_pred = decode_seq(query_seq)
 
     if verbose:
-        print(" == INFERENCE ==")
-        print("\nQuery:", query)
-        print("query_cleaned:", query_cleaned)
-        print("Summary:", sum_pred)
+        print("\n == INFERENCE ==")
+        print("Query:", query)
+        print("\nquery_cleaned:", query_cleaned)
+        print("\nSummary:", sum_pred)
 
 # END OF abstractive.py

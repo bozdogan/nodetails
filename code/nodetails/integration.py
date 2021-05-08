@@ -1,33 +1,13 @@
-if __name__ == "__main__":
-    import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import abstractive
+from nodetails import abstractive, extractive
 from nodetails.abstractive import InferenceParameters
-from nodetails.extractive import *
-
-ExtractiveSummary = namedtuple(
-    "ExtractiveSummary",
-    ["summary", "reference", "sentences", "paragraphs"])
 
 
 class IntegratedSummarizer:
     def __init__(self, abstractive_model: InferenceParameters):
         self.abst_model = abstractive_model
 
-    @staticmethod
-    def _extractive_wikipedia(article_url, length=7):
-        html = fetch_article(article_url)
-        paragraphs = split_paragraphs(html, preset="wikipedia")
-        sentences = tag_sentences(paragraphs)
-
-        scores = score_sentences(sentences)
-        reference = get_best_items(scores, length)
-
-        summary = " ".join([sentences[it] for it in reference])
-
-        return ExtractiveSummary(summary, reference, sentences, paragraphs)
-
     def from_wikipedia_article(self, article_url):
-        extsum = self._extractive_wikipedia(article_url, 10)
+        extsum = extractive.get_summary_from_url(article_url, 10)
         abstsum = abstractive.make_inference(self.abst_model, extsum.summary)
 
         return abstsum

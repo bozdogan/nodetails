@@ -1,12 +1,13 @@
 from collections import namedtuple, OrderedDict
-import re
 from urllib import request
 from bs4 import BeautifulSoup
+import re
 import nltk
 
-def fetch_article(articleurl):
-    urlhandle = request.urlopen(articleurl)
-    return urlhandle.read()
+
+ExtractiveSummary = namedtuple(
+    "ExtractiveSummary",
+    ["summary", "reference", "sentences", "paragraphs"])
 
 
 def split_paragraphs(html, preset="wikipedia"):
@@ -35,13 +36,12 @@ def split_paragraphs(html, preset="wikipedia"):
     return None
 
 
-
 def tag_sentences(paragraphs):
     result = OrderedDict()  # NOTE(bora): This needs to be an ordered list as it is sorted later in the code.
     for para_no, para in paragraphs:
         sentences = nltk.sent_tokenize(para)
         for sent_no, sent in enumerate(sentences):
-            result[(para_no, sent_no)] = sent
+            result[(para_no, sent_no)] = sent.strip()
 
     return result
 
@@ -97,30 +97,40 @@ def score_sentences(sentences):
     else:
         for key, sent in enumerate(sentences):
             for word in nltk.word_tokenize(sent.lower()):
-                # NOTE(bora): If sentence references are ditched then the key is sentence itself.
+                # NOTE(bora): If sentence references are ditched
+                # then the key is sentence itself.
                 update_score(scores, sent, word, sent)
 
     return scores
 
 
-def get_best_items(a_dict, n: int):
+def _fetch_article(articleurl):
+    urlhandle = request.urlopen(articleurl)
+    return urlhandle.read()
+
+
+def _get_best_items(a_dict, n: int):
     return list(reversed(sorted(a_dict, key=a_dict.get)))[:n]
 
 
-if __name__ == "__main__":
-    html = fetch_article("https://en.wikipedia.org/wiki/Citation_needed")
-    paragraphs = split_paragraphs(html)
+def get_summary_from_url(article_url, length=7, preprocessing_preset="wikipedia"):
+    """Get the summary from given url."""
+
+    html = _fetch_article(article_url)
+    return get_summary(html, length, preprocessing_preset)
+
+
+def get_summary(article, length=7, preprocessing_preset="wikipedia"):
+    """Get the summary from given text (HTML formatted)."""
+    
+    paragraphs = split_paragraphs(article, preprocessing_preset)
     sentences = tag_sentences(paragraphs)
 
     scores = score_sentences(sentences)
-    # NOTE(bora): It's an ordered dictionary such as
-    #     scores = {(para_no, sent_no): score, ...}
+    reference = _get_best_items(scores, length)
 
-    summary = []
-    for sent_id in get_best_items(scores, 7):
-        summary.append("%s %s" % (sent_id, sentences[sent_id]))
+    summary = " ".join([sentences[it] for it in reference])
 
-    print("\n\n   == SUMMARY ==\n")
-    print("\n".join(summary))
+    return ExtractiveSummary(summary, reference, sentences, paragraphs)
 
 # END OF extractive.py

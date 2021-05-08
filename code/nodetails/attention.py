@@ -118,4 +118,4 @@ class Attention(Layer):
         return [tf.TensorShape((input_shape[1][0], input_shape[1][1], input_shape[1][2])),
                 tf.TensorShape((input_shape[1][0], input_shape[1][1], input_shape[0][1]))]
 
-# END OF attention_layer.py
+# END OF attention.py

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-import os
+if __name__ == "__main__":
+    import os
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
 
-#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 from nodetails.abstractive import *
 from nodetails.util import prepare_dataset
 
 
-""" No Details: Essence of the text """
 if __name__ == "__main__":
     DATA_DIR = "../data"
     MODEL_SAVE_DIR = "../data/_models"
@@ -29,7 +29,6 @@ if __name__ == "__main__":
                             show_histogram=False)
 
     # NOTE(bora): Deep learning part
-
     if 0:
         model_params = define_model(x_tokenizer, y_tokenizer,
                                          max_len_text=MAX_LEN_TEXT,
@@ -56,4 +55,4 @@ if __name__ == "__main__":
 
     print("Done.")
 
-# END OF sum_abstractive.py
+# END OF nodetails_abs.py
