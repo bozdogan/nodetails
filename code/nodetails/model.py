@@ -48,17 +48,22 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum,latent_dim=
     dec_dense = layers.TimeDistributed(layers.Dense(y_voc_size, activation="softmax"))
     dec_output = dec_dense(dec_concat_input)
 
-    model = Model([enc_input, dec_input], dec_output)
     parameters = (x_tokenizer, y_tokenizer, max_len_text, max_len_sum,
                   enc_input, enc_output, state_h, state_c,
                   dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
 
-    return model, parameters
+    return parameters
 
 
-def train_model(model, training_data, validation_data,
-                batch_size=512, show_graph=True):
+def train_model(params, training_data, validation_data,
+                batch_size=128, show_graph=True):
     (x_train, y_train), (x_val, y_val) = training_data, validation_data
+
+    (_, _, _, _,
+     enc_input, _, _, _,
+     dec_input, dec_output, _, _, _, _) = params
+
+    model = Model([enc_input, dec_input], dec_output)
 
     model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy")
     es = EarlyStopping(monitor="val_loss", mode="min", verbose=1)
@@ -79,7 +84,7 @@ def train_model(model, training_data, validation_data,
     return model
 
 
-def prep_for_inference(model, model_params, latent_dim=500):
+def prep_for_inference(model_params, latent_dim=500):
     (x_tokenizer, y_tokenizer,
      max_len_text, max_len_sum,
      enc_input, enc_output, state_h, state_c,
@@ -115,7 +120,8 @@ def prep_for_inference(model, model_params, latent_dim=500):
     reverse_source_word_index = x_tokenizer.index_word
     target_word_index = y_tokenizer.word_index
 
-    return (encoder_model, decoder_model, reverse_target_word_index, reverse_source_word_index, target_word_index,
+    return (encoder_model, decoder_model,
+            reverse_target_word_index, reverse_source_word_index, target_word_index,
             max_len_text, max_len_sum)
 
 
@@ -135,10 +141,10 @@ def _seq2text(input_seq, reverse_source_word_index):
     return " ".join(result)
 
 
-def _decode_sequence(input_seq, model_params, debug_output=False):
+def _decode_sequence(input_seq, inference_params, debug_output=False):
     (encoder_model, decoder_model,
      reverse_target_word_index, reverse_source_word_index, target_word_index,
-     max_len_text, max_len_sum) = model_params
+     max_len_text, max_len_sum) = inference_params
 
     # Encode the input as state vectors.
     enc_out, enc_h, enc_c = encoder_model.predict(input_seq)
@@ -157,6 +163,12 @@ def _decode_sequence(input_seq, model_params, debug_output=False):
 
         # Sample a token
         sampled_token_index = np.argmax(output_tokens[0, -1, :])
+        if sampled_token_index == 0:
+            # NOTE(bora): 0 is selected as sequence index. Probably because model is
+            # under-trained. Exit the loop to prevent KeyError. Result will be an
+            # empty string.
+            break
+
         sampled_token = reverse_target_word_index[sampled_token_index]
         if debug_output:
             print("sampled_token", sampled_token)
@@ -175,36 +187,48 @@ def _decode_sequence(input_seq, model_params, debug_output=False):
     return decoded_sentence
 
 
-def test_validation_set(x_val, y_val, model_params, item_range=None, debug_output=False):
+def test_validation_set(x_val, y_val, inference_params, item_range=None, debug_output=False, silent=False):
+    if silent: debug_output = False
     (encoder_model, decoder_model,
      reverse_target_word_index, reverse_source_word_index, target_word_index,
-     max_len_text, max_len_sum) = model_params
+     max_len_text, max_len_sum) = inference_params
 
     def decode_seq(it):
-        return _decode_sequence(it.reshape(1, max_len_text), model_params, debug_output)
+        result = _decode_sequence(it.reshape(1, max_len_text), inference_params, debug_output)
+        assert result, f"Empty result of type {type(result)}"
+        return result
 
     if item_range:
         range_lo = max(0, min(item_range[0], len(x_val)))
         range_hi = min(item_range[1], len(x_val))
 
         for item in range(range_lo, range_hi):
-            print("\nReview:", _seq2text(x_val[item], reverse_source_word_index))
-            print("Original summary:", _seq2summary(y_val[item], target_word_index, reverse_target_word_index))
-            print("Predicted summary:", decode_seq(x_val[item]))
+            review = _seq2text(x_val[item], reverse_source_word_index)
+            sum_orig = _seq2summary(y_val[item], target_word_index, reverse_target_word_index)
+            sum_pred = decode_seq(x_val[item])
+            if not silent:
+                print("\nReview #%s: %s" % (item, review))
+                print("Original summary:", sum_orig)
+                print("Predicted summary:",sum_pred)
     else:
         from random import randint
         item = randint(0, len(x_val) - 1)
-        print("\nItem #%d" % item)
-        print("-"*len("Item #%d" % item))
-        print("Review:", _seq2text(x_val[item], reverse_source_word_index))
-        print("Original summary:", _seq2summary(y_val[item], target_word_index, reverse_target_word_index))
-        print("Predicted summary:", decode_seq(x_val[item]))
+
+        review = _seq2text(x_val[item], reverse_source_word_index)
+        sum_orig = _seq2summary(y_val[item], target_word_index, reverse_target_word_index)
+        sum_pred = decode_seq(x_val[item])
+        if not silent:
+            print("\nItem #%d" % item)
+            print("-"*len("Item #%d" % item))
+            print("\nReview:", review)
+            print("Original summary:", sum_orig)
+            print("Predicted summary:",sum_pred)
 
 
-def save_nodetails_model(model_params, save_location, debug_output=False):
+def save_nodetails_model(inference_params, save_location, debug_output=False):
     (encoder_model, decoder_model,
      reverse_target_word_index, reverse_source_word_index, target_word_index,
-     max_len_text, max_len_sum) = model_params
+     max_len_text, max_len_sum) = inference_params
     if debug_output:
         print(f"Saving model at {save_location}")
 

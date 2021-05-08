@@ -7,14 +7,14 @@ from nodetails.model import *
 from nodetails.util import prepare_dataset
 
 
-# NOTE(bora): No Details: Essence of the text
+""" No Details: Essence of the text """
 if __name__ == "__main__":
     DATA_DIR = "../data"
     MODEL_SAVE_DIR = "../data/_models"
 
     DATASET_NAME = "food_reviews"
     input_file = f"{DATA_DIR}/food_reviews/Reviews.csv"
-    INPUT_SIZE = None  # NOTE(bora): Import entire dataset if set to None
+    INPUT_SIZE = 1000  # NOTE(bora): `None` to import the entire dataset
 
     MAX_LEN_TEXT = 80
     MAX_LEN_SUM = 10
@@ -30,24 +30,26 @@ if __name__ == "__main__":
 
     # NOTE(bora): Deep learning part
     if not "train from scratch":
-        model, parameters = define_model(x_tokenizer, y_tokenizer,
+        parameters = define_model(x_tokenizer, y_tokenizer,
                                          max_len_text=MAX_LEN_TEXT,
                                          max_len_sum=MAX_LEN_SUM)
-        model.summary()
 
-        model = train_model(model,
+        model = train_model(parameters,
                             (x_train, y_train), (x_val, y_val),
                             batch_size=128,
                             show_graph=True)
-        model_params = prep_for_inference(model, parameters)
-        save_nodetails_model(model_params, f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
+
+        model.summary()
+
+        infr_params = prep_for_inference(parameters)
+        #save_nodetails_model(infr_params, f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
     else:
-        model_params = load_nodetails_model(f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
+        infr_params = load_nodetails_model(f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
 
     print("LEN X TRAIN", len(x_train))
     print("LEN X VAL", len(x_val))
 
-    test_validation_set(x_val, y_val, model_params,
+    test_validation_set(x_val, y_val, infr_params,
                         item_range=(42, 52),
                         debug_output=False)
 
