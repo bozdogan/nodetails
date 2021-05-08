@@ -1,10 +1,12 @@
+from collections import namedtuple
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from nodetails.attention import Attention
 
@@ -12,6 +14,18 @@ _gpus = tf.config.list_physical_devices("GPU")
 if _gpus:
     for it in _gpus:
         tf.config.experimental.set_memory_growth(it, True)
+
+
+ModelParameters = namedtuple("ModelParameters",
+    ["x_tokenizer", "y_tokenizer", "max_len_text", "max_len_sum", "latent_dim",
+     "enc_input", "enc_output", "state_h", "state_c",
+     "dec_input", "dec_output", "dec_embedding", "dec_lstm", "dec_dense", "attn"])
+
+InferenceParameters = namedtuple("InferenceParameters",
+    ["encoder_model", "decoder_model",
+     "y_index_word", "x_index_word", "y_word_index",
+     "max_len_text", "max_len_sum"])
+
 
 
 def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim=500):
@@ -48,13 +62,12 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim
     dec_dense = layers.TimeDistributed(layers.Dense(y_voc_size, activation="softmax"))
     dec_output = dec_dense(dec_concat_input)
 
-    model_params = (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
-                    enc_input, enc_output, state_h, state_c,
-                    dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
-    return model_params
+    return ModelParameters(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
+                           enc_input, enc_output, state_h, state_c,
+                           dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
 
 
-def train_model(model_params, training_data, validation_data, batch_size=128, show_graph=True):
+def train_model(model_params: ModelParameters, training_data, validation_data, batch_size=128, show_graph=True):
     (x_train, y_train), (x_val, y_val) = training_data, validation_data
 
     (_, _, _, _, _,
@@ -82,7 +95,7 @@ def train_model(model_params, training_data, validation_data, batch_size=128, sh
     return model
 
 
-def prep_for_inference(model_params):
+def prep_model_for_inference(model_params: ModelParameters):
     (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
      enc_input, enc_output, state_h, state_c,
      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
@@ -117,10 +130,9 @@ def prep_for_inference(model_params):
     x_index_word = x_tokenizer.index_word
     y_word_index = y_tokenizer.word_index
 
-    infr_params = (encoder_model, decoder_model,
-                   y_index_word, x_index_word, y_word_index,
-                   max_len_text, max_len_sum)
-    return infr_params
+    return InferenceParameters(encoder_model, decoder_model,
+                               y_index_word, x_index_word, y_word_index,
+                               max_len_text, max_len_sum)
 
 
 def _seq2summary(input_seq, y_word_index, y_index_word):
@@ -139,7 +151,7 @@ def _seq2text(input_seq, x_index_word):
     return " ".join(result)
 
 
-def _decode_sequence(input_seq, infr_params, debug_output=False):
+def _decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=False):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
@@ -185,13 +197,13 @@ def _decode_sequence(input_seq, infr_params, debug_output=False):
     return decoded_sentence
 
 
-def test_validation_set(x_val, y_val, infr_params, item_range=None, debug_output=False, silent=False):
+def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_range=None, debug_output=False, silent=False):
     if silent: debug_output = False
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
 
-    def decode_seq(it):
+    def decode_validation_seq(it):
         result = _decode_sequence(x_val[it].reshape(1, max_len_text), infr_params, debug_output)
         assert result, f"Empty result of type {type(result)} at item #{it}"
         return result
@@ -203,7 +215,7 @@ def test_validation_set(x_val, y_val, infr_params, item_range=None, debug_output
         for item in range(range_lo, range_hi):
             review = _seq2text(x_val[item], x_index_word)
             sum_orig = _seq2summary(y_val[item], y_word_index, y_index_word)
-            sum_pred = decode_seq(item)
+            sum_pred = decode_validation_seq(item)
             if not silent:
                 print("\nReview #%s: %s" % (item, review))
                 print("Original summary:", sum_orig)
@@ -214,7 +226,7 @@ def test_validation_set(x_val, y_val, infr_params, item_range=None, debug_output
 
         review = _seq2text(x_val[item], x_index_word)
         sum_orig = _seq2summary(y_val[item], y_word_index, y_index_word)
-        sum_pred = decode_seq(item)
+        sum_pred = decode_validation_seq(item)
         if not silent:
             print("\nItem #%d" % item)
             print("-"*len("Item #%d" % item))
@@ -223,7 +235,7 @@ def test_validation_set(x_val, y_val, infr_params, item_range=None, debug_output
             print("Predicted summary:",sum_pred)
 
 
-def save_nodetails_model(infr_params, save_location, debug_output=False):
+def save_nodetails_model(infr_params: InferenceParameters, save_location, debug_output=False):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
@@ -263,8 +275,44 @@ def load_nodetails_model(save_location, debug_output=False):
     if debug_output:
         print(f"Model loaded")
 
-    return (encoder_model, decoder_model,
-            y_index_word, x_index_word, y_word_index,
-            max_len_text, max_len_sum)
+    return InferenceParameters(encoder_model, decoder_model,
+                               y_index_word, x_index_word, y_word_index,
+                               max_len_text, max_len_sum)
+
+
+def inference(infr_params: InferenceParameters, query: str):
+    (encoder_model, decoder_model,
+     y_index_word, x_index_word, y_word_index,
+     max_len_text, max_len_sum) = infr_params
+
+    def decode_seq(it):
+        result = _decode_sequence(it.reshape(1, max_len_text), infr_params)
+        assert result, f"Empty result of type {type(result)} at inference"
+        return result
+
+    x_word_index = {v: k for k, v in x_index_word.items()}
+    
+    def convert_to_sequences(words):
+
+        result = []
+        for it in words:
+            it = it.strip()
+            if it in x_word_index:
+                result.append(x_word_index[it])
+            else:
+                print("W Token not found: %s" % it)
+
+        return pad_sequences([result], maxlen=max_len_text, padding="post")[0]
+
+    import nodetails.util
+    query_cleaned = nodetails.util.clean_text(query)
+
+    query_seq = convert_to_sequences(query_cleaned.split())
+    #review = _seq2text(x_val[item], x_index_word)
+    sum_pred = decode_seq(query_seq)
+
+    print("\nQuery:", query)
+    print("query_cleaned: %s" % query_cleaned)
+    print("Predicted summary:",sum_pred)
 
 # END OF model.py

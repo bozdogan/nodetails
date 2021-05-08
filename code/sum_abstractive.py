@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     DATASET_NAME = "food_reviews"
     input_file = f"{DATA_DIR}/food_reviews/Reviews.csv"
-    INPUT_SIZE = 1000  # NOTE(bora): `None` to import the entire dataset
+    INPUT_SIZE = 100000  # NOTE(bora): `None` to import the entire dataset
 
     MAX_LEN_TEXT = 80
     MAX_LEN_SUM = 10
@@ -29,6 +29,7 @@ if __name__ == "__main__":
                             show_histogram=False)
 
     # NOTE(bora): Deep learning part
+
     if 0:
         model_params = define_model(x_tokenizer, y_tokenizer,
                                          max_len_text=MAX_LEN_TEXT,
@@ -41,7 +42,7 @@ if __name__ == "__main__":
 
         model.summary()
 
-        infr_params = prep_for_inference(model_params)
+        infr_params = prep_model_for_inference(model_params)
         #save_nodetails_model(infr_params, f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
     else:
         infr_params = load_nodetails_model(f"{MODEL_SAVE_DIR}/{MODEL_NAME}.model", debug_output=True)
