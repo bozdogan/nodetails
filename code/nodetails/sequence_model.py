@@ -6,7 +6,6 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from nodetails.attention import Attention
 
@@ -196,46 +195,7 @@ def decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=Fa
     return decoded_sentence
 
 
-def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_range=None,
-                        debug_output=False, silent=False):
-    if silent: debug_output = False
-    (encoder_model, decoder_model,
-     y_index_word, x_index_word, y_word_index,
-     max_len_text, max_len_sum) = infr_params
-
-    def decode_validation_seq(it):
-        result = decode_sequence(x_val[it].reshape(1, max_len_text), infr_params, debug_output)
-        assert result, f"Empty result of type {type(result)} at item #{it}"
-        return result
-
-    if item_range:
-        range_lo = max(0, min(item_range[0], len(x_val)))
-        range_hi = min(item_range[1], len(x_val))
-
-        for item in range(range_lo, range_hi):
-            review = _seq2text(x_val[item], x_index_word)
-            sum_orig = _seq2summary(y_val[item], y_word_index, y_index_word)
-            sum_pred = decode_validation_seq(item)
-            if not silent:
-                print("\nReview #%s: %s" % (item, review))
-                print("Original summary:", sum_orig)
-                print("Predicted summary:", sum_pred)
-    else:
-        from random import randint
-        item = randint(0, len(x_val) - 1)
-
-        review = _seq2text(x_val[item], x_index_word)
-        sum_orig = _seq2summary(y_val[item], y_word_index, y_index_word)
-        sum_pred = decode_validation_seq(item)
-        if not silent:
-            print("\nItem #%d" % item)
-            print("-"*len("Item #%d" % item))
-            print("\nReview:", review)
-            print("Original summary:", sum_orig)
-            print("Predicted summary:", sum_pred)
-
-
-def save(infr_params: InferenceParameters, save_location, verbose=True):
+def save_sequence_model(infr_params: InferenceParameters, save_location, verbose=True):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
@@ -256,7 +216,7 @@ def save(infr_params: InferenceParameters, save_location, verbose=True):
         print(f"Model saved")
 
 
-def load(save_location, verbose=True):
+def load_sequence_model(save_location, verbose=True):
     if verbose:
         print(f"Loading model from {save_location}")
 
@@ -280,40 +240,28 @@ def load(save_location, verbose=True):
                                max_len_text, max_len_sum)
 
 
-def make_inference(infr_params: InferenceParameters, query: str, verbose=True):
+def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_range=(0, 1),
+                        debug_output=False, silent=False):
+    if silent: debug_output = False
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
-    
-    x_word_index = {v: k for k, v in x_index_word.items()}
-    
-    def convert_to_sequences(words):
 
-        result = []
-        for it in words:
-            it = it.strip()
-            if it in x_word_index:
-                result.append(x_word_index[it])
-            else:
-                print("W Token not found: %s" % it)
+    def decode_validation_seq(it):
+        result = decode_sequence(x_val[it].reshape(1, max_len_text), infr_params, debug_output)
+        assert result, f"Empty result of type {type(result)} at item #{it}"
+        return result
 
-        return pad_sequences([result], maxlen=max_len_text, padding="post")[0]
+    range_lo = max(0, min(item_range[0], len(x_val)))
+    range_hi = min(item_range[1], len(x_val))
 
-    import nodetails.util
-    query_cleaned = nodetails.util.clean_text(query)
-
-    query_seq = convert_to_sequences(query_cleaned.split())
-    prediction = decode_sequence(query_seq.reshape(1, max_len_text), infr_params)
-
-    assert prediction, f"Empty result of type {type(prediction)} at inference"
-
-    if verbose:
-        print("\n == INFERENCE ==\n")
-        
-        print("Query:", query)
-        print("\nquery_cleaned:", query_cleaned)
-        print("\nSummary:", prediction)
-
-    return prediction
+    for item in range(range_lo, range_hi):
+        review = _seq2text(x_val[item], x_index_word)
+        sum_orig = _seq2summary(y_val[item], y_word_index, y_index_word)
+        sum_pred = decode_validation_seq(item)
+        if not silent:
+            print("\nReview #%s: %s" % (item, review))
+            print("Original summary:", sum_orig)
+            print("Predicted summary:", sum_pred)
 
 # END OF sequence_model.py

@@ -1,12 +1,19 @@
+from collections import namedtuple
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
 import re
-import bs4
+from bs4 import BeautifulSoup
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+
+DatasetResult = namedtuple("DatasetResult",
+                           ["x_train", "y_train", "x_val", "y_val", 
+                            "x_tokenizer", "y_tokenizer"])
+
 
 _INCLUDE_DIR = f"{ os.path.dirname(__file__)}/../../include".replace("\\", "/")
 
@@ -18,7 +25,7 @@ with open(f"{_INCLUDE_DIR}/contraction_mapping_en.txt") as f:
 
 
 def clean_text(articletext, stopwords=_stopwords_en, contractions=_contractions_en):
-    articletext = bs4.BeautifulSoup(articletext.lower(), "lxml").text
+    articletext = BeautifulSoup(articletext.lower(), "lxml").text
     articletext = re.sub(r"\([^)]*\)", "", articletext)  # NOTE(bora): Remove any parentheses and text between them
     
     articletext = re.sub("\"", "", articletext)  # NOTE(bora): Remove quotation marks
@@ -47,7 +54,9 @@ def clean_summary(summary, contractions=_contractions_en):
     return result
 
 
-def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=False, show_histogram=False):
+# NOTE(bora): This function is not universal. Needs to be modified before
+# processing different datasets.
+def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False):
     cachefile_name = f"{datafile}-cache-{nrows}.gz"
     
     if os.path.exists(cachefile_name):
@@ -95,17 +104,23 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
         summary_word_count.append(len(it.split()))
 
     length_df = pd.DataFrame({"text": text_word_count, "summary": summary_word_count})
-    if verbose > 2 or show_histogram:
+    if show_histogram:
         print("Here are histograms")
         length_df.hist(bins=30)
         plt.show(block=True)
 
-        print("Tokenizing")
+    return data
 
+
+def prepare_for_training(data: pd.DataFrame, max_len_text, max_len_sum, verbose=False):
+    if verbose:
+        print("Spliting train/test sets")
     x_train, x_val, y_train, y_val = \
         train_test_split(data["cleaned_text"], data["cleaned_summary"],
                          test_size=.1, random_state=0, shuffle=True)
 
+    if verbose:
+        print("Tokenizing")
     x_tokenizer = Tokenizer()
     x_tokenizer.fit_on_texts(list(x_train))
 
@@ -125,6 +140,12 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
     if verbose:
         print("Preprocessing is done\n")
 
-    return (x_train, y_train, x_val, y_val), (x_tokenizer, y_tokenizer)
+    return DatasetResult(x_train, y_train, x_val, y_val,
+                         x_tokenizer, y_tokenizer)
+
+
+def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=False, show_histogram=False):
+    data = preprocess_dataset(datafile, nrows, verbose, show_histogram)
+    return prepare_for_training(data, max_len_text, max_len_sum, verbose)
 
 # END OF util.py
