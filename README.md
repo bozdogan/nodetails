@@ -168,6 +168,7 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None):
 
 Deep learning model
 `nodetails_model.py`:
+
 ```python
 import pickle
 import numpy as np
@@ -237,7 +238,7 @@ def train_model(model, training_data, validation_data, batch_size=512):
               epochs=50, callbacks=[es], batch_size=batch_size,
               validation_data=([x_val, y_val[:, :-1]],
                                y_val.reshape(y_val.shape[0], y_val.shape[1], 1)[:, 1:]))
-    
+
     return model
 
 
@@ -351,8 +352,8 @@ def test_validation_set(x_val, y_val, model_params, item_range=None):
     else:
         from random import randint
         item = randint(0, len(x_val) - 1)
-        print("\nItem #%d" % item)
-        print("-"*len("Item #%d" % item))
+        print("\nItem #%d"%item)
+        print("-"*len("Item #%d"%item))
         print("Review:", _seq2text(x_val[item], reverse_source_word_index))
         print("Original summary:", _seq2summary(y_val[item], target_word_index, reverse_target_word_index))
         print("Predicted summary:", decode_seq(x_val[item]))
@@ -363,8 +364,8 @@ def save_nodetails_model(model_params, save_location):
      reverse_target_word_index, reverse_source_word_index, target_word_index,
      max_len_text, max_len_sum) = model_params
 
-    encoder_model.save(f"{save_location}/encoder")
-    decoder_model.save(f"{save_location}/decoder")
+    encoder_model.save_sequence_model(f"{save_location}/encoder")
+    decoder_model.save_sequence_model(f"{save_location}/decoder")
 
     params = (reverse_target_word_index, reverse_source_word_index, target_word_index,
               max_len_text, max_len_sum)

@@ -8,7 +8,7 @@ from nodetails.sequence_model import InferenceParameters
 High-level API for NoDetails abstractive summarization model
 """ 
 
-def create_model(data: pandas.DataFrame, latent_dim=500, batch_size=128,
+def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=500, batch_size=128,
                  verbose=True, show_epoch_graph=True, print_model_summary=True):
     (x_train, y_train, x_val, y_val,
      x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, verbose)
@@ -16,7 +16,7 @@ def create_model(data: pandas.DataFrame, latent_dim=500, batch_size=128,
     model_params = nodetails.sequence_model.define_model(
         x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim)
     
-    nodetails.sequence_model.train_model(
+    model = nodetails.sequence_model.train_model(
         model_params, (x_train, y_train), (x_val, y_val),
         batch_size=batch_size,
         show_graph=show_epoch_graph)
