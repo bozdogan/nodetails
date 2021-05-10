@@ -11,7 +11,7 @@ High-level API for NoDetails abstractive summarization model
 def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=500, batch_size=128,
                  verbose=True, show_epoch_graph=True, print_model_summary=True):
     (x_train, y_train, x_val, y_val,
-     x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, verbose)
+     x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, max_len_text, max_len_sum, verbose)
 
     model_params = nodetails.sequence_model.define_model(
         x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim)
@@ -41,7 +41,7 @@ def load(save_directory, name, verbose=True):
         f"{save_directory}/{name}.model", verbose)
 
 
-def make_inference(infr_params: InferenceParameters, query: str, debug_output=True):
+def make_inference(infr_params: InferenceParameters, query: str, debug_output=False):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
