@@ -1,4 +1,3 @@
-from collections import namedtuple
 import os
 import numpy as np
 import pandas as pd
@@ -9,10 +8,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-
-DatasetResult = namedtuple("DatasetResult",
-                           ["x_train", "y_train", "x_val", "y_val", 
-                            "x_tokenizer", "y_tokenizer"])
+from nodetails import DatasetResult
 
 
 _INCLUDE_DIR = f"{ os.path.dirname(__file__)}/../../include".replace("\\", "/")
@@ -54,7 +50,7 @@ def clean_summary(summary, contractions=_contractions_en):
     return result
 
 
-# NOTE(bora): This function is not universal. Needs to be modified before
+# TODO(bora): This function is not universal. Needs to be modified before
 # processing different datasets.
 def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False):
     cachefile_name = f"{datafile}-cache-{nrows}.gz"

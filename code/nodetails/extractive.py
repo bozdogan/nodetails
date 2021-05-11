@@ -1,13 +1,10 @@
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from urllib import request
 from bs4 import BeautifulSoup
 import re
 import nltk
 
-
-ExtractiveSummary = namedtuple(
-    "ExtractiveSummary",
-    ["summary", "reference", "sentences", "paragraphs"])
+from nodetails import ExtractiveSummary
 
 
 # TODO(bora): `preset` parameter needs to be some kind of enum.

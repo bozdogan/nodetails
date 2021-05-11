@@ -1,15 +1,18 @@
+"""
+High-level API for NoDetails abstractive summarization model
+""" 
+
 import os.path
 import pandas
 import nodetails.util
 import nodetails.sequence_model
 from nodetails.sequence_model import InferenceParameters
 
-"""
-High-level API for NoDetails abstractive summarization model
-""" 
 
 def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=500, batch_size=128,
-                 verbose=True, show_epoch_graph=True, print_model_summary=True):
+                 verbose=True, show_epoch_graph=True, print_model_summary=True) -> InferenceParameters:
+    """Takes a pandas data frame, returns an InferenceParameters object"""
+
     (x_train, y_train, x_val, y_val,
      x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, max_len_text, max_len_sum, verbose)
 
@@ -70,9 +73,9 @@ def make_inference(infr_params: InferenceParameters, query: str, debug_output=Fa
     if debug_output:
         print("\n == INFERENCE ==\n")
         
-        print("Query:", query)
-        print("\nquery_cleaned:", query_cleaned)
-        print("\nSummary:", prediction)
+        print("  Query:", query)
+        print("  query_cleaned:", query_cleaned)
+        print("  Summary:", prediction)
 
     return prediction
 
