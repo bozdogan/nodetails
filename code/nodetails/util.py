@@ -61,11 +61,14 @@ def clean_dataset(dataset, keep_original=False, verbose=False):
     assert "text" in dataset and "sum" in dataset
 
     text_cleaned = [clean_text(it) for it in dataset["text"]]
-    sum_cleaned = map(lambda it: f"__START__ {it} __END__", 
-                      filter(lambda it: it != "", 
-                             [clean_summary(it) for it in dataset["sum"]]))
+    sum_cleaned = [clean_summary(it) for it in dataset["sum"]]
+    result = pd.DataFrame({"text_cleaned": text_cleaned,
+                           "sum_cleaned": sum_cleaned})
 
-    return pd.DataFrame({"text_cleaned": text_cleaned, "sum_cleaned": sum_cleaned})
+    (result["sum_cleaned"].replace("", np.nan, inplace=True)
+                          .apply(lambda it: f"__START__ {it} __END__"))
+
+    return result
 
 
 # TODO(bora): This function is not universal. Needs to be modified before
