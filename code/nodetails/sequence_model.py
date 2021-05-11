@@ -6,7 +6,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
 
-from nodetails import ModelParameters, InferenceParameters
+from nodetails import ModelSpecs, InferenceParameters
 from nodetails.attention import Attention
 
 _gpus = tf.config.list_physical_devices("GPU")
@@ -49,12 +49,12 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim
     dec_dense = layers.TimeDistributed(layers.Dense(y_voc_size, activation="softmax"))
     dec_output = dec_dense(dec_concat_input)
 
-    return ModelParameters(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
-                           enc_input, enc_output, state_h, state_c,
-                           dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
+    return ModelSpecs(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
+                      enc_input, enc_output, state_h, state_c,
+                      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
 
 
-def train_model(model_params: ModelParameters, training_data, validation_data, batch_size=128, show_graph=True):
+def train_model(model_params: ModelSpecs, training_data, validation_data, batch_size=128, show_graph=True):
     (x_train, y_train), (x_val, y_val) = training_data, validation_data
 
     (_, _, _, _, _,
@@ -82,7 +82,7 @@ def train_model(model_params: ModelParameters, training_data, validation_data, b
     return model
 
 
-def prep_model_for_inference(model_params: ModelParameters):
+def prep_model_for_inference(model_params: ModelSpecs):
     (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
      enc_input, enc_output, state_h, state_c,
      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
