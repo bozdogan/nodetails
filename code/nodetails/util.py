@@ -65,8 +65,9 @@ def clean_dataset(dataset, keep_original=False, verbose=False):
     result = pd.DataFrame({"text_cleaned": text_cleaned,
                            "sum_cleaned": sum_cleaned})
 
-    (result["sum_cleaned"].replace("", np.nan, inplace=True)
-                          .apply(lambda it: f"__START__ {it} __END__"))
+    result["sum_cleaned"] = result["sum_cleaned"].replace("", np.nan)
+    result = result.dropna()
+    result["sum_cleaned"].apply(lambda it: f"__START__ {it} __END__")
 
     return result
 
@@ -82,7 +83,7 @@ def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False
             print("Loading preprocessed file")
         data = pd.read_pickle(cachefile_name)
     else:
-        data = pd.read_csv(datafile, nrows=nrows)
+        data = pd.read_csv(datafile, nrows=10000)
 
         data.drop_duplicates(subset=["Text"], inplace=True)
         data.dropna(inplace=True)
