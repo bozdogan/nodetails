@@ -21,17 +21,18 @@ with open(f"{_INCLUDE_DIR}/contraction_mapping_en.txt") as f:
 
 
 def clean_text(articletext, stopwords=_stopwords_en, contractions=_contractions_en):
-    articletext = BeautifulSoup(articletext.lower(), "lxml").text
-    articletext = re.sub(r"\([^)]*\)", "", articletext)  # NOTE(bora): Remove any parentheses and text between them
-    
-    articletext = re.sub("\"", "", articletext)  # NOTE(bora): Remove quotation marks
-    articletext = " ".join([contractions[it] if it in contractions else it for it in
-                            articletext.split(" ")])  # NOTE(bora): Expand contractions
-    articletext = re.sub(r"'s\b", "", articletext)  # NOTE(bora): Remove trailing "'s"s
 
-    articletext = re.sub(r"[^a-zA-z]", " ", articletext)
-    tokens = [it for it in articletext.split() if it not in stopwords]
+    # NOTE(bora): Remove any HTML tags, content inside parantheses,
+    # quotation marks, and word-final "'s"s. Also expand contractions
+    # to their full form.
+    txt = BeautifulSoup(articletext.lower(), "lxml").text
+    txt = re.sub(r"\([^)]*\)", "", txt)
+    txt = re.sub("\"", "", txt)
+    txt = " ".join([contractions[it] if it in contractions else it for it in txt.split(" ")])
+    txt = re.sub(r"'s\b", "", txt)
+    txt = re.sub(r"[^a-zA-z]", " ", txt)
 
+    tokens = [it for it in txt.split() if it not in stopwords]
     long_words = [it for it in tokens if len(it) > 3]
     return (" ".join(long_words)).strip()
 
@@ -83,12 +84,11 @@ def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False
             print("Loading preprocessed file")
         data = pd.read_pickle(cachefile_name)
     else:
-        data = pd.read_csv(datafile, nrows=10000)
+        data = (pd.read_csv(datafile, nrows=10000)
+                  .drop_duplicates(subset=["Text"])
+                  .dropna()
+                  .rename(columns={"Text": "text", "Summary": "sum"}))
 
-        data.drop_duplicates(subset=["Text"], inplace=True)
-        data.dropna(inplace=True)
-
-        data.rename(columns={"Text": "text", "Summary": "sum"}, inplace=True)
         data = clean_dataset(data)
 
         if verbose:
@@ -99,13 +99,8 @@ def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False
         print("\nCounting words")
 
     if show_histogram:
-        text_word_count = []
-        for it in data["text_cleaned"]:
-            text_word_count.append(len(it.split()))
-        
-        summary_word_count = []
-        for it in data["sum_cleaned"]:
-            summary_word_count.append(len(it.split()))
+        text_word_count = [len(it.split()) for it in data["text_cleaned"]]
+        summary_word_count = [len(it.split()) for it in data["sum_cleaned"]]
         
         length_df = pd.DataFrame({"text": text_word_count, "summary": summary_word_count})
         print("Here are histograms")
@@ -124,21 +119,22 @@ def prepare_for_training(data: pd.DataFrame, max_len_text, max_len_sum, verbose=
 
     if verbose:
         print("Tokenizing")
+
     x_tokenizer = Tokenizer()
     x_tokenizer.fit_on_texts(list(x_train))
 
-    x_train = x_tokenizer.texts_to_sequences(x_train)
-    x_val = x_tokenizer.texts_to_sequences(x_val)
-    x_train = pad_sequences(x_train, maxlen=max_len_text, padding="post")
-    x_val = pad_sequences(x_val, maxlen=max_len_text, padding="post")
+    x_train = pad_sequences(x_tokenizer.texts_to_sequences(x_train),
+                            maxlen=max_len_text, padding="post")
+    x_val = pad_sequences(x_tokenizer.texts_to_sequences(x_val),
+                          maxlen=max_len_text, padding="post")
 
     y_tokenizer = Tokenizer()
     y_tokenizer.fit_on_texts(list(y_train))
 
-    y_train = y_tokenizer.texts_to_sequences(y_train)
-    y_val = y_tokenizer.texts_to_sequences(y_val)
-    y_train = pad_sequences(y_train, maxlen=max_len_sum, padding="post")
-    y_val = pad_sequences(y_val, maxlen=max_len_sum, padding="post")
+    y_train = pad_sequences(y_tokenizer.texts_to_sequences(y_train),
+                            maxlen=max_len_sum, padding="post")
+    y_val = pad_sequences(y_tokenizer.texts_to_sequences(y_val),
+                          maxlen=max_len_sum, padding="post")
 
     if verbose:
         print("Preprocessing is done\n")
