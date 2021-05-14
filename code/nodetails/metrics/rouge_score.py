@@ -24,8 +24,6 @@ ROUGe metric implementation.
 This is a modified and slightly extended verison of
 https://github.com/miso-belica/sumy/blob/dev/sumy/evaluation/rouge.py.
 """
-from __future__ import absolute_import
-from __future__ import division, print_function, unicode_literals
 import itertools
 
 from copy import deepcopy
