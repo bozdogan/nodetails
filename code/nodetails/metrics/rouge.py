@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
 import nodetails.metrics.rouge_score as rouge_score
 import io
 import os
@@ -88,7 +87,7 @@ class Rouge:
                 self.stats = Rouge.DEFAULT_STATS
 
     def get_scores(self, hyps, refs, avg=False, ignore_empty=False):
-        if isinstance(hyps, six.string_types):
+        if isinstance(hyps, str):
             hyps, refs = [hyps], [refs]
 
         if ignore_empty:
