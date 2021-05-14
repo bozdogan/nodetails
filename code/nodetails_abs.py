@@ -22,8 +22,8 @@ if __name__ == "__main__":
     (_, _, x_val, y_val, _, _) = util.prepare_for_training(training_data, max_len_text, max_len_sum, verbose=True)
 
     # NOTE(bora): Deep learning part
-    if 0:
-        absmodel = create_model(
+    if 1:
+        absmodel = abstractive.create_model(
             training_data, max_len_text, max_len_sum,
             latent_dim=500, batch_size=128)
 

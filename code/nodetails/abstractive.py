@@ -5,6 +5,7 @@ High-level API for NoDetails abstractive summarization model
 import os.path
 import pandas
 import nodetails.util
+import nodetails.preprocess
 import nodetails.sequence_model
 from nodetails.sequence_model import InferenceParameters
 
@@ -64,7 +65,7 @@ def make_inference(infr_params: InferenceParameters, query: str, debug_output=Fa
                                             maxlen=max_len_text,
                                             padding="post")[0]
 
-    query_cleaned = nodetails.util.clean_text(query)
+    query_cleaned = nodetails.preprocess.clean_text(query)
 
     query_seq = convert_to_sequences(query_cleaned.split())
     prediction = nodetails.sequence_model.decode_sequence(query_seq.reshape(1, max_len_text),
