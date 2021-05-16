@@ -2,7 +2,7 @@
 This module demonstrates basic usage of NoDetails API.
 """
 
-import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"  # Remove this line if you are OK with tensorflow warnings.
 from nodetails import abstractive, extractive
 
 
@@ -34,17 +34,17 @@ if __name__ == "__main__":
     # See nodetails.abs_py for training code
     model_dir = "../data/_models"
     model_name = f"nodetails--food_reviews--80-10--None"
-    infr_params = abstractive.load(model_dir, model_name, verbose=True)
+    infr_params = abstractive.load(model_dir, model_name)
 
-    text = ("My main use for almond, soy, or rice milk is to use in coffee "
-            "or tea.  The best so far is Silk soymilk original but this Silk "
-            "almond milk is very nearly as good.  Actually as far as taste goes "
-            "I'd say the almond milk might be best but for using in coffee the "
-            "soy edges out the almond for creaminess. I totally enjoy them "
-            "both and have been buying the almond milk from Amazon at a very "
-            "fair price.  But now it's off the Subscribe and Save program "
-            "so the cost will go up. I intend to continue buying either "
-            "Silk almond or Silk soy milk because they are the best for me.")
+    text = ("My main use for almond, soy, or rice milk is to use in coffee"
+            " or tea.  The best so far is Silk soymilk original but this Silk"
+            " almond milk is very nearly as good.  Actually as far as taste goes"
+            " I'd say the almond milk might be best but for using in coffee the"
+            " soy edges out the almond for creaminess. I totally enjoy them"
+            " both and have been buying the almond milk from Amazon at a very"
+            " fair price.  But now it's off the Subscribe and Save program"
+            " so the cost will go up. I intend to continue buying either"
+            " Silk almond or Silk soy milk because they are the best for me.")
     abstractive_summary = abstractive.make_inference(infr_params, text)
     print(abstractive_summary)
 

@@ -7,15 +7,16 @@ import pandas
 import nodetails.util
 import nodetails.preprocess
 import nodetails.nn.sequence_model
+from nodetails import _DEBUG
 from nodetails.nn.sequence_model import InferenceParameters
 
 
 def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=500, batch_size=128,
-                 verbose=True, show_epoch_graph=True, print_model_summary=True) -> InferenceParameters:
+                 show_epoch_graph=True, print_model_summary=True) -> InferenceParameters:
     """Takes a pandas data frame, returns an InferenceParameters object"""
 
     (x_train, y_train, x_val, y_val,
-     x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, max_len_text, max_len_sum, verbose)
+     x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, max_len_text, max_len_sum)
 
     model_params = nodetails.nn.sequence_model.define_model(
         x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim)
@@ -35,17 +36,17 @@ def model_exists(save_directory, name):
     return os.path.isdir(f"{save_directory}/{name}.model")
 
 
-def save(infr_params: InferenceParameters, save_directory, name, verbose=True):
+def save(infr_params: InferenceParameters, save_directory, name):
     nodetails.nn.sequence_model.save_sequence_model(
-        infr_params, f"{save_directory}/{name}.model", verbose)
+        infr_params, f"{save_directory}/{name}.model")
 
 
-def load(save_directory, name, verbose=True):
+def load(save_directory, name):
     return nodetails.nn.sequence_model.load_sequence_model(
-        f"{save_directory}/{name}.model", verbose)
+        f"{save_directory}/{name}.model")
 
 
-def make_inference(infr_params: InferenceParameters, query: str, debug_output=False):
+def make_inference(infr_params: InferenceParameters, query: str):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
@@ -58,7 +59,7 @@ def make_inference(infr_params: InferenceParameters, query: str, debug_output=Fa
             it = it.strip()
             if it in x_word_index:
                 result.append(x_word_index[it])
-            elif debug_output:
+            elif _DEBUG:
                 print("Token doesn't exist on lexicon: %s" % it)
 
         return nodetails.util.pad_sequences([result],
@@ -71,7 +72,7 @@ def make_inference(infr_params: InferenceParameters, query: str, debug_output=Fa
     prediction = nodetails.nn.sequence_model.decode_sequence(query_seq.reshape(1, max_len_text),
                                                              infr_params)
 
-    if debug_output:
+    if _DEBUG:
         print("\n == INFERENCE ==\n")
         
         print("  Query:", query)

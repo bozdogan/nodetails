@@ -22,4 +22,8 @@ ExtractiveSummary = namedtuple(
     "ExtractiveSummary",
     ["summary", "reference", "sentences", "paragraphs"])
 
-# END OF __init__.py
+
+_DEBUG = True
+"""Whether or not internal functions print debugging output"""
+
+# END OF nodetails/__init__.py
