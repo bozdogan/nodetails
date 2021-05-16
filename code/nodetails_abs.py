@@ -3,8 +3,8 @@ if __name__ == "__main__":
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
 
-from nodetails import abstractive, sequence_model, util
-
+from nodetails import abstractive, util
+from nodetails.nn import sequence_model
 
 if __name__ == "__main__":
     DATA_DIR = "../data"

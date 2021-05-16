@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-from nodetails import DatasetResult
+from nodetails import DatasetResult, InferenceParameters, extractive, abstractive
 from nodetails.preprocess import clean_dataset
 
 # TODO(bora): This function is not universal. Needs to be modified before
@@ -83,3 +83,8 @@ def prepare_dataset(datafile, max_len_text, max_len_sum, nrows=None, verbose=Fal
     return prepare_for_training(data, max_len_text, max_len_sum, verbose)
 
 # END OF util.py
+def summary_from_wikipedia(article_url, abst_model: InferenceParameters):
+    extsum = extractive.get_summary_from_url(article_url, 10, preset="wikipedia")
+    abstsum = abstractive.make_inference(abst_model, extsum.summary, debug_output=True)
+
+    return abstsum

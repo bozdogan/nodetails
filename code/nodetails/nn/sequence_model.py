@@ -7,7 +7,7 @@ from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
 
 from nodetails import ModelSpecs, InferenceParameters
-from nodetails.attention import Attention
+from nodetails.nn.attention import Attention
 
 _gpus = tf.config.list_physical_devices("GPU")
 if _gpus:

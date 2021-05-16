@@ -6,8 +6,8 @@ import os.path
 import pandas
 import nodetails.util
 import nodetails.preprocess
-import nodetails.sequence_model
-from nodetails.sequence_model import InferenceParameters
+import nodetails.nn.sequence_model
+from nodetails.nn.sequence_model import InferenceParameters
 
 
 def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=500, batch_size=128,
@@ -17,10 +17,10 @@ def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=5
     (x_train, y_train, x_val, y_val,
      x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, max_len_text, max_len_sum, verbose)
 
-    model_params = nodetails.sequence_model.define_model(
+    model_params = nodetails.nn.sequence_model.define_model(
         x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim)
     
-    model = nodetails.sequence_model.train_model(
+    model = nodetails.nn.sequence_model.train_model(
         model_params, (x_train, y_train), (x_val, y_val),
         batch_size=batch_size,
         show_graph=show_epoch_graph)
@@ -28,7 +28,7 @@ def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=5
     if print_model_summary:
         model.summary()
 
-    return nodetails.sequence_model.prep_model_for_inference(model_params)
+    return nodetails.nn.sequence_model.prep_model_for_inference(model_params)
 
 
 def model_exists(save_directory, name):
@@ -36,12 +36,12 @@ def model_exists(save_directory, name):
 
 
 def save(infr_params: InferenceParameters, save_directory, name, verbose=True):
-    nodetails.sequence_model.save_sequence_model(
+    nodetails.nn.sequence_model.save_sequence_model(
         infr_params, f"{save_directory}/{name}.model", verbose)
 
 
 def load(save_directory, name, verbose=True):
-    return nodetails.sequence_model.load_sequence_model(
+    return nodetails.nn.sequence_model.load_sequence_model(
         f"{save_directory}/{name}.model", verbose)
 
 
@@ -68,8 +68,8 @@ def make_inference(infr_params: InferenceParameters, query: str, debug_output=Fa
     query_cleaned = nodetails.preprocess.clean_text(query)
 
     query_seq = convert_to_sequences(query_cleaned.split())
-    prediction = nodetails.sequence_model.decode_sequence(query_seq.reshape(1, max_len_text),
-                                                          infr_params)
+    prediction = nodetails.nn.sequence_model.decode_sequence(query_seq.reshape(1, max_len_text),
+                                                             infr_params)
 
     if debug_output:
         print("\n == INFERENCE ==\n")
