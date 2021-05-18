@@ -31,10 +31,9 @@ if __name__ == "__main__":
     # with Attention based on Recurrent Neural Networks. We need to load a trained
     # model before making an inference.
     #
-    # See nodetails.abs_py for training code
-    model_dir = "../data/_models"
-    model_name = f"nodetails--food_reviews--80-10--None"
-    infr_params = abstractive.load(model_dir, model_name)
+    # See nodetails.train_py for training code
+    model_savepath = "../data/_models/nodetails--food_reviews--80-10--None"
+    infr_params = abstractive.load(model_savepath)
 
     text = ("My main use for almond, soy, or rice milk is to use in coffee"
             " or tea.  The best so far is Silk soymilk original but this Silk"

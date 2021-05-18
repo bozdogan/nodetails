@@ -8,7 +8,7 @@ DatasetResult = namedtuple(
 
 ModelSpecs = namedtuple(
     "ModelSpecs",
-    ["x_tokenizer", "y_tokenizer", "max_len_text", "max_len_sum", "latent_dim",
+    ["x_tokenizer", "y_tokenizer", "textlen", "sumlen", "latent_dim",
      "enc_input", "enc_output", "state_h", "state_c",
      "dec_input", "dec_output", "dec_embedding", "dec_lstm", "dec_dense", "attn"])
 
@@ -16,7 +16,7 @@ InferenceParameters = namedtuple(
     "InferenceParameters",
     ["encoder_model", "decoder_model",
      "y_index_word", "x_index_word", "y_word_index",
-     "max_len_text", "max_len_sum"])
+     "textlen", "sumlen"])
 
 ExtractiveSummary = namedtuple(
     "ExtractiveSummary",
