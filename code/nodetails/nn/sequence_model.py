@@ -16,14 +16,14 @@ if _gpus:
         tf.config.experimental.set_memory_growth(it, True)
 
 
-def define_model(x_tokenizer, y_tokenizer, textlen, sumlen, latent_dim=500):
+def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim=500):
     x_voc_size = len(x_tokenizer.word_index) + 1
     y_voc_size = len(y_tokenizer.word_index) + 1
 
     tf.keras.backend.clear_session()
 
-    enc_input = layers.Input(shape=(textlen,))
-    enc_embedding = layers.Embedding(x_voc_size, latent_dim, trainable=True, input_shape=(textlen,))(enc_input)
+    enc_input = layers.Input(shape=(max_len_text,))
+    enc_embedding = layers.Embedding(x_voc_size, latent_dim, trainable=True, input_shape=(max_len_text,))(enc_input)
 
     enc_lstm1 = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
     enc_lstm1_out, _, _ = enc_lstm1(enc_embedding)
@@ -50,7 +50,7 @@ def define_model(x_tokenizer, y_tokenizer, textlen, sumlen, latent_dim=500):
     dec_dense = layers.TimeDistributed(layers.Dense(y_voc_size, activation="softmax"))
     dec_output = dec_dense(dec_concat_input)
 
-    return ModelSpecs(x_tokenizer, y_tokenizer, textlen, sumlen, latent_dim,
+    return ModelSpecs(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
                       enc_input, enc_output, state_h, state_c,
                       dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
 
@@ -84,7 +84,7 @@ def train_model(model_params: ModelSpecs, training_data, validation_data, batch_
 
 
 def prep_model_for_inference(model_params: ModelSpecs):
-    (x_tokenizer, y_tokenizer, textlen, sumlen, latent_dim,
+    (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
      enc_input, enc_output, state_h, state_c,
      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
 
@@ -95,7 +95,7 @@ def prep_model_for_inference(model_params: ModelSpecs):
     # NOTE(bora): Keep track of states from the previous time step
     decoder_state_input_h = layers.Input(shape=(latent_dim,))
     decoder_state_input_c = layers.Input(shape=(latent_dim,))
-    decoder_hidden_state_input = layers.Input(shape=(textlen, latent_dim))
+    decoder_hidden_state_input = layers.Input(shape=(max_len_text, latent_dim))
 
     # NOTE(bora): Get the embeddings of the decoder sequence
     dec_emb2 = dec_embedding(dec_input)
@@ -120,7 +120,7 @@ def prep_model_for_inference(model_params: ModelSpecs):
 
     return InferenceParameters(encoder_model, decoder_model,
                                y_index_word, x_index_word, y_word_index,
-                               textlen, sumlen)
+                               max_len_text, max_len_sum)
 
 
 def _seq2summary(input_seq, y_word_index, y_index_word):
@@ -142,7 +142,7 @@ def _seq2text(input_seq, x_index_word):
 def decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=False):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
-     textlen, sumlen) = infr_params
+     max_len_text, max_len_sum) = infr_params
 
     # Encode the input as state vectors.
     enc_out, enc_h, enc_c = encoder_model.predict(input_seq)
@@ -171,7 +171,7 @@ def decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=Fa
             decoded_sentence += " " + sampled_token
 
             # Exit condition. Either hit max length or find "end"
-        if sampled_token == "end" or len(decoded_sentence.split()) >= (sumlen - 1):
+        if sampled_token == "end" or len(decoded_sentence.split()) >= (max_len_sum - 1):
             _done = True
 
         # Update the target sequence and internal states
@@ -185,7 +185,7 @@ def decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=Fa
 def save_sequence_model(infr_params: InferenceParameters, save_location):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
-     textlen, sumlen) = infr_params
+     max_len_text, max_len_sum) = infr_params
     if _DEBUG:
         print(f"Saving model at {save_location}")
 
@@ -195,7 +195,7 @@ def save_sequence_model(infr_params: InferenceParameters, save_location):
         print(f"Encoder and decoder is saved.")
 
     params = (y_index_word, x_index_word, y_word_index,
-              textlen, sumlen)
+              max_len_text, max_len_sum)
 
     with open(f"{save_location}/parameters.pkl", "wb") as fp:
         pickle.dump(params, fp)
@@ -218,13 +218,13 @@ def load_sequence_model(save_location):
 
     with open(f"{save_location}/parameters.pkl", "rb") as fp:
         (y_index_word, x_index_word, y_word_index,
-         textlen, sumlen) = pickle.load(fp)
+         max_len_text, max_len_sum) = pickle.load(fp)
     if _DEBUG:
         print(f"Model loaded")
 
     return InferenceParameters(encoder_model, decoder_model,
                                y_index_word, x_index_word, y_word_index,
-                               textlen, sumlen)
+                               max_len_text, max_len_sum)
 
 
 def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_range=(0, 1),
@@ -232,12 +232,12 @@ def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_ran
     if silent: debug_output = False
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
-     textlen, sumlen) = infr_params
+     max_len_text, max_len_sum) = infr_params
 
     def decode_validation_seq(it):
-        result = decode_sequence(x_val[it].reshape(1, textlen), infr_params, debug_output)
-        #assert result, f"Empty result of type {type(result)} at item #{it}"
-        return result if result else "SHIT, MOTHERFUCKER!!"
+        result = decode_sequence(x_val[it].reshape(1, max_len_text), infr_params, debug_output)
+        assert result, f"Empty result of type {type(result)} at item #{it}"
+        return result
 
     range_lo = max(0, min(item_range[0], len(x_val)))
     range_hi = min(item_range[1], len(x_val))
