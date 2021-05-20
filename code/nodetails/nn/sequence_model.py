@@ -6,7 +6,6 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
 
-from nodetails import _DEBUG
 from nodetails import ModelSpecs, InferenceParameters
 from nodetails.nn.attention import Attention
 
@@ -65,7 +64,7 @@ def train_model(model_params: ModelSpecs, training_data, validation_data, batch_
     model = Model([enc_input, dec_input], dec_output)
 
     model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy")
-    es = EarlyStopping(monitor="val_loss", mode="min")
+    es = EarlyStopping(monitor="val_loss", mode="min", verbose=1)
 
     history = model.fit([x_train, y_train[:, :-1]],
                         y_train.reshape(y_train.shape[0], y_train.shape[1], 1)[:, 1:],
@@ -182,16 +181,16 @@ def decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=Fa
     return decoded_sentence
 
 
-def save_sequence_model(infr_params: InferenceParameters, save_location):
+def save_sequence_model(infr_params: InferenceParameters, save_location, verbose=True):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
-    if _DEBUG:
+    if verbose:
         print(f"Saving model at {save_location}")
 
     encoder_model.save(f"{save_location}/encoder")
     decoder_model.save(f"{save_location}/decoder")
-    if _DEBUG:
+    if verbose:
         print(f"Encoder and decoder is saved.")
 
     params = (y_index_word, x_index_word, y_word_index,
@@ -199,12 +198,12 @@ def save_sequence_model(infr_params: InferenceParameters, save_location):
 
     with open(f"{save_location}/parameters.pkl", "wb") as fp:
         pickle.dump(params, fp)
-    if _DEBUG:
+    if verbose:
         print(f"Model saved")
 
 
-def load_sequence_model(save_location):
-    if _DEBUG:
+def load_sequence_model(save_location, verbose=True):
+    if verbose:
         print(f"Loading model from {save_location}")
 
     encoder_model = keras_load_model(f"{save_location}/encoder",
@@ -213,13 +212,13 @@ def load_sequence_model(save_location):
     decoder_model = keras_load_model(f"{save_location}/decoder",
                                      custom_objects={"Attention": Attention},
                                      compile=False)
-    if _DEBUG:
+    if verbose:
         print(f"Encoder and decoder is loaded.")
 
     with open(f"{save_location}/parameters.pkl", "rb") as fp:
         (y_index_word, x_index_word, y_word_index,
          max_len_text, max_len_sum) = pickle.load(fp)
-    if _DEBUG:
+    if verbose:
         print(f"Model loaded")
 
     return InferenceParameters(encoder_model, decoder_model,

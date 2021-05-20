@@ -45,7 +45,7 @@ def clean_summary(summary, contractions=_contractions_en):
     return result
 
 
-def clean_dataset(dataset, keep_original=False):
+def clean_dataset(dataset, keep_original=False, verbose=False):
     """Removes punctuation and converts to lowercase.
     
     :param dataset: A mapping with equal length lists in 
