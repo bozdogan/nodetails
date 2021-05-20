@@ -1,10 +1,10 @@
 if __name__ == "__main__":
     import os
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Modify this line according to your hardware setup
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
 
-from nodetails import abstractive, util
-from nodetails.nn import sequence_model
+from nodetails import abstractive, sequence_model, util
+
 
 if __name__ == "__main__":
     DATA_DIR = "../data"
@@ -18,11 +18,11 @@ if __name__ == "__main__":
     max_len_sum = 10
     model_name = f"nodetails--{dataset_name}--{max_len_text}-{max_len_sum}--{input_size}"
 
-    training_data = util.preprocess_dataset(input_file, nrows=input_size)
-    (_, _, x_val, y_val, _, _) = util.prepare_for_training(training_data, max_len_text, max_len_sum)
+    training_data = util.preprocess_dataset(input_file, nrows=input_size, verbose=True)
+    (_, _, x_val, y_val, _, _) = util.prepare_for_training(training_data, max_len_text, max_len_sum, verbose=True)
 
     # NOTE(bora): Deep learning part
-    if not "train":
+    if 1:
         absmodel = abstractive.create_model(
             training_data, max_len_text, max_len_sum,
             latent_dim=500, batch_size=128)

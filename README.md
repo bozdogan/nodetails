@@ -1,6 +1,6 @@
 _2021-04-10_
 
-NoDetails: Essence of the Text
+NoDetails: Essence of the text
 ===============================
 
 <!-- Keywords -->
