@@ -156,8 +156,8 @@ def save_sequence_model(infr_model: InferenceModel, save_location, verbose=True)
     if verbose:
         print(f"Saving model at {save_location}")
 
-    encoder_model.save(f"{save_location}/encoder")
-    decoder_model.save(f"{save_location}/decoder")
+    encoder_model.save(f"{save_location}/encoder.h5")
+    decoder_model.save(f"{save_location}/decoder.h5")
     if verbose:
         print(f"Encoder and decoder is saved.")
 
@@ -173,10 +173,10 @@ def load_sequence_model(save_location, verbose=True) -> InferenceModel:
     if verbose:
         print(f"Loading model from {save_location}")
 
-    encoder_model = keras_load_model(f"{save_location}/encoder",
+    encoder_model = keras_load_model(f"{save_location}/encoder.h5",
                                      custom_objects={"Attention": Attention},
                                      compile=False)
-    decoder_model = keras_load_model(f"{save_location}/decoder",
+    decoder_model = keras_load_model(f"{save_location}/decoder.h5",
                                      custom_objects={"Attention": Attention},
                                      compile=False)
     if verbose:
@@ -223,7 +223,7 @@ def decode_sequence(input_seq, infr_model: InferenceModel):
     encoder_state = [state_h, state_c]
 
     target_seq = np.zeros((1, 1))
-    target_seq[0, 0] = y_tkn.word_index["start"]
+    target_seq[0, 0] = y_tkn.word_index["<start>"]
 
     _done = False
     result = []
@@ -236,11 +236,11 @@ def decode_sequence(input_seq, infr_model: InferenceModel):
             _done = True
         else:
             sampled_token = y_tkn.index_word[sampled_index]
-            print("sampled_token", sampled_token)
-            if sampled_token != "end":
+            # print("sampled_token", sampled_token)
+            if sampled_token != "<end>":
                 result.append(sampled_token)
 
-            if sampled_token == "end" or len(result) >= y_len - 1:
+            if sampled_token == "<end>" or len(result) >= y_len - 1:
                 _done = True
             else:
                 target_seq = np.zeros((1, 1))
@@ -255,7 +255,9 @@ def seq2text(input_seq, tkn):
     return " ".join(result)
 
 
-def test_validation_set(infr_model: InferenceModel, x_val, y_val, x_tkn, y_tkn, x_len, y_len, item_range=(0, 1)):
+def test_validation_set(infr_model: InferenceModel, x_val, y_val, lexicon, item_range=(0, 1)):
+    x_tkn, y_tkn, x_len, y_len = lexicon
+
     def decode_validation_seq(it):
         result = decode_sequence(it.reshape(1, x_len), infr_model)
         assert result, f"Empty result of type {type(result)} at item #{it}"
@@ -263,7 +265,9 @@ def test_validation_set(infr_model: InferenceModel, x_val, y_val, x_tkn, y_tkn, 
 
     for i in range(*item_range):
         review = seq2text(x_val[i], x_tkn)
-        sum_orig = seq2text(y_val[i], y_tkn)
+        sum_orig = (seq2text(y_val[i], y_tkn).replace("<start>", "")
+                                             .replace("<end>", "")
+                                             .strip())
         sum_pred = decode_validation_seq(x_val[i])
         print("\nReview #%s: %s" % (i, review))
         print("Original summary:", sum_orig)

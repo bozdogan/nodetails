@@ -6,7 +6,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from nodetails import extractive, abstractive
-from nodetails.preprocess import clean_dataset
+from nodetails.prep import clean_dataset
 
 # TODO(bora): This function is not universal. Needs to be modified before
 # processing different datasets.

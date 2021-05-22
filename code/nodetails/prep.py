@@ -80,7 +80,7 @@ def prepare_training_set(dataset, x_len=150, y_len=12, split=.1) -> (TrainingSet
     assert "text_cleaned" in dataset and "sum_cleaned" in dataset,\
            "Dataset is not correctly formatted."
 
-    # dataset["sum_cleaned"] =  dataset["sum_cleaned"].apply(lambda it: f"<start> {it} <end>")
+    dataset["sum_cleaned"] =  dataset["sum_cleaned"].apply(lambda it: f"<start> {it} <end>")
     x_train, x_val, y_train, y_val = sklearn.model_selection.train_test_split(
         dataset["text_cleaned"], dataset["sum_cleaned"],
         test_size=split, random_state=17, shuffle=True)
