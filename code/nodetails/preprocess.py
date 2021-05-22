@@ -64,7 +64,7 @@ def clean_dataset(dataset, keep_original=False, verbose=False):
 
     result["sum_cleaned"] = result["sum_cleaned"].replace("", np.nan)
     result = result.dropna()
-    result["sum_cleaned"].apply(lambda it: f"__START__ {it} __END__")
+    result["sum_cleaned"] = result["sum_cleaned"].apply(lambda it: f"__START__ {it} __END__")
 
     return result
 
