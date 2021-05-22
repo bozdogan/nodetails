@@ -4,17 +4,10 @@ import pandas as pd
 import re
 from bs4 import BeautifulSoup
 
-
-_INCLUDE_DIR = f"{ os.path.dirname(__file__)}/../../include".replace("\\", "/")
-
-with open(f"{_INCLUDE_DIR}/stopwords/english") as f:
-    _stopwords_en = tuple([line for line in f.read().split("\n") if line])
-
-with open(f"{_INCLUDE_DIR}/contraction_mapping_en.txt") as f:
-    _contractions_en = dict([(line.split(",")) for line in f.read().split("\n")])
+from nodetails import contraction_map_en, stopwords_en
 
 
-def clean_text(articletext, stopwords=_stopwords_en, contractions=_contractions_en):
+def clean_text(articletext, stopwords=stopwords_en, contractions=contraction_map_en):
 
     # NOTE(bora): Remove any HTML tags, content inside parantheses,
     # quotation marks, and word-final "'s"s. Also expand contractions
@@ -31,7 +24,7 @@ def clean_text(articletext, stopwords=_stopwords_en, contractions=_contractions_
     return (" ".join(long_words)).strip()
 
 
-def clean_summary(summary, contractions=_contractions_en):
+def clean_summary(summary, contractions=contraction_map_en):
     summary = re.sub("\"", "", summary)  # NOTE(bora): Remove quotation marks
     summary = " ".join([contractions[it] if it in contractions else it for it in
                         summary.split(" ")])  # NOTE(bora): Expand contractions

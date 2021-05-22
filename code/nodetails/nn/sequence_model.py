@@ -9,11 +9,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 from nodetails import ModelSpecs, InferenceParameters
 from nodetails.nn.attention import Attention
 
-_gpus = tf.config.list_physical_devices("GPU")
-if _gpus:
-    for it in _gpus:
-        tf.config.experimental.set_memory_growth(it, True)
-
 
 def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim=500):
     x_voc_size = len(x_tokenizer.word_index) + 1
@@ -41,10 +36,10 @@ def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim
     dec_lstm = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
     dec_output, _fwd_state, _bkw_state = dec_lstm(dec_embedding_out, initial_state=[state_h, state_c])
 
-    attn = Attention(name="attention_layer")
+    attn = Attention()
     attn_out, attn_states = attn([enc_output, dec_output])
 
-    dec_concat_input = layers.Concatenate(axis=-1, name="concat_layer")([dec_output, attn_out])
+    dec_concat_input = layers.Concatenate(axis=-1)([dec_output, attn_out])
 
     dec_dense = layers.TimeDistributed(layers.Dense(y_voc_size, activation="softmax"))
     dec_output = dec_dense(dec_concat_input)
