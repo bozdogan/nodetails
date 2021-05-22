@@ -9,11 +9,11 @@ enable_vram_growth()
 import tensorflow as tf; tf.keras.backend.clear_session()
 
 if __name__ == "__main__":
-    DATA_DIR = "../data"
+    DATA_DIR = "/mnt/b/data"
     model_save_dir = f"{DATA_DIR}/_models"
 
     input_file = f"{DATA_DIR}/food_reviews/Reviews.csv"
-    input_size = 1000  # NOTE(bora): `None` to import the entire dataset
+    input_size = None  # NOTE(bora): `None` to import the entire dataset
     
     dataset_name = "food_reviews"
     max_len_text = 80
@@ -25,13 +25,15 @@ if __name__ == "__main__":
         dataset, x_len=max_len_text, y_len=max_len_sum, split=.1)
 
     # NOTE(bora): Deep learning part
-    training_model, infr_model = abs.create_models(lexicon, 500)
+    training_model, infr_model = abs.create_models(lexicon, latent_dim=500)
+
+    training_model.model.summary()
+    #infr_model.encoder.summary()
+    #infr_model.decoder.summary()
 
     abs.train_model(training_model, training_data,
                     batch_size=128,
                     show_graph=False)
-
-    training_model.model.summary()
 
     # NOTE(bora): Save the model to disk
     abs.save_model(infr_model, f"{model_save_dir}/{model_name}.model",

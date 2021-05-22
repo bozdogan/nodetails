@@ -50,9 +50,12 @@ def create_models(lexicon: Lexicon, latent_dim=500):
         layers.Dense(decoder_vocab, activation="softmax"))
     output = decoder_dense(hidden5)
 
-    training_model = Model([encoder_input, decoder_input], output)
+    training_model = Model(name="training_model",
+                           inputs=[encoder_input, decoder_input],
+                           outputs=output)
 
-    infr_encoder_model = Model(inputs=encoder_input,
+    infr_encoder_model = Model(name="encoder_infrerence_model",
+                               inputs=encoder_input,
                                outputs=[encoder_output, state_h, state_c])
 
     infr_prev_h = layers.Input(shape=(latent_dim,))
@@ -66,8 +69,9 @@ def create_models(lexicon: Lexicon, latent_dim=500):
     infr_hidden3 = layers.Concatenate(axis=-1)([infr_hidden1, infr_hidden2])
 
     infr_output = decoder_dense(infr_hidden3)
-    infr_decoder_model = Model([decoder_input] + [infr_prev_hidden, infr_prev_h, infr_prev_c],
-                          [infr_output] + [infr_state_h, infr_state_c])
+    infr_decoder_model = Model(name="decoder_infrerence_model",
+                               inputs=[decoder_input] + [infr_prev_hidden, infr_prev_h, infr_prev_c],
+                               outputs=[infr_output] + [infr_state_h, infr_state_c])
 
     return (TrainingModel(training_model, latent_dim),
             InferenceModel(infr_encoder_model, infr_decoder_model, lexicon))

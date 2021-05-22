@@ -99,7 +99,7 @@ def prepare_training_set(dataset, x_len=150, y_len=12, split=.1) -> (TrainingSet
     y_train = pad_sequences(y_tkn.texts_to_sequences(y_train), maxlen=y_len + 2, padding="post")
     y_val = pad_sequences(y_tkn.texts_to_sequences(y_val), maxlen=y_len + 2, padding="post")
 
-    # NOTE(bora): Summaries will include the start token so we specify
+    # NOTE(bora): Summaries will include the start token, so we set
     # `maxlen` for y-tokenizer as `y_len + 2`. Decoder will also use
     # one word slot for the end token. In order to make the final length
     # accurate, we increment `y_len` before returning.
