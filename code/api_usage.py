@@ -2,7 +2,11 @@
 This module demonstrates basic usage of NoDetails API.
 """
 
-import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+import os;
+
+import nodetails.nn.sequence_model
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 from nodetails import abstractive, extractive
 
 
@@ -45,7 +49,7 @@ if __name__ == "__main__":
             "fair price.  But now it's off the Subscribe and Save program "
             "so the cost will go up. I intend to continue buying either "
             "Silk almond or Silk soy milk because they are the best for me.")
-    abstractive_summary = abstractive.make_inference(infr_params, text)
+    abstractive_summary = nodetails.nn.sequence_model.make_inference(infr_params, text)
     print(abstractive_summary)
 
     #
@@ -54,7 +58,7 @@ if __name__ == "__main__":
 
     # We intend to combine these two methods into a more flexible solution:
     extsum = extractive.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed").summary
-    integrated_example = abstractive.make_inference(infr_params, extsum)
+    integrated_example = nodetails.nn.sequence_model.make_inference(infr_params, extsum)
 
     print(integrated_example)
     print(extsum)

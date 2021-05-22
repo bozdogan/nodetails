@@ -6,11 +6,16 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
 
+import nodetails.nn
+import nodetails.preprocess
+import nodetails.util
+
 from nodetails import *
+from nodetails import InferenceModel
 from nodetails.nn.attention import Attention
 
 
-def define_model(lexicon: Lexicon, latent_dim=500):
+def create_models(lexicon: Lexicon, latent_dim=500):
     x_tkn, y_tkn, x_len, y_len = lexicon
 
     encoder_vocab = len(x_tkn.word_index) + 1
@@ -92,66 +97,7 @@ def train_model(training_model: TrainingModel, training_set: TrainingSet,
     return model
 
 
-# def _seq2summary(input_seq, y_word_index, y_index_word):
-#     result = []
-#     for it in input_seq:
-#         if (it != 0 and it != y_word_index["start"]) and it != y_word_index["end"]:
-#             result.append(y_index_word[it])
-#     return " ".join(result)
-#
-#
-# def _seq2text(input_seq, x_index_word):
-#     result = []
-#     for it in input_seq:
-#         if it != 0:
-#             result.append(x_index_word[it])
-#     return " ".join(result)
-
-
-# def decode_sequence(input_seq, infr_params: InferenceParameters, debug_output=False):
-#     (encoder_model, decoder_model,
-#      y_index_word, x_index_word, y_word_index,
-#      max_len_text, max_len_sum) = infr_params
-#
-#     # Encode the input as state vectors.
-#     enc_out, enc_h, enc_c = encoder_model.predict(input_seq)
-#     if debug_output:
-#         print("(input_seq, e_out)", (input_seq, enc_out))
-#
-#     target_seq = np.zeros((1, 1))  # Generate empty target sequence
-#     target_seq[0, 0] = y_word_index["start"]  # Set "start" as the first word of the target sequence
-#
-#     _done = False
-#     decoded_sentence = ""
-#     while not _done:
-#         output_tokens, h, c = decoder_model.predict([target_seq] + [enc_out, enc_h, enc_c])
-#
-#         sampled_token_index = np.argmax(output_tokens[0, -1, :])
-#         if sampled_token_index == 0:
-#             # NOTE(bora): 0 is selected as sequence index. Probably because model is
-#             # under-trained. Exit the loop to prevent KeyError. Result will be an
-#             # empty string.
-#             break
-#
-#         sampled_token = y_index_word[sampled_token_index]
-#         if debug_output:
-#             print("sampled_token", sampled_token)
-#         if sampled_token != "end":
-#             decoded_sentence += " " + sampled_token
-#
-#             # Exit condition. Either hit max length or find "end"
-#         if sampled_token == "end" or len(decoded_sentence.split()) >= (max_len_sum - 1):
-#             _done = True
-#
-#         # Update the target sequence and internal states
-#         target_seq = np.zeros((1, 1))
-#         target_seq[0, 0] = sampled_token_index
-#         enc_h, enc_c = h, c
-#
-#     return decoded_sentence
-
-
-def save_sequence_model(infr_model: InferenceModel, save_location, verbose=True):
+def save_model(infr_model: InferenceModel, save_location, verbose=True):
     encoder_model, decoder_model, lexicon = infr_model
     if verbose:
         print(f"Saving model at {save_location}")
@@ -169,7 +115,7 @@ def save_sequence_model(infr_model: InferenceModel, save_location, verbose=True)
         print(f"Model saved")
 
 
-def load_sequence_model(save_location, verbose=True) -> InferenceModel:
+def load_model(save_location, verbose=True) -> InferenceModel:
     if verbose:
         print(f"Loading model from {save_location}")
 
@@ -188,32 +134,6 @@ def load_sequence_model(save_location, verbose=True) -> InferenceModel:
         print(f"Model loaded")
 
     return InferenceModel(encoder_model, decoder_model, lexicon)
-
-
-# def test_validation_set(x_val, y_val, infr_params: InferenceParameters, item_range=(0, 1),
-#                         debug_output=False, silent=False):
-#     if silent: debug_output = False
-#     (encoder_model, decoder_model,
-#      y_index_word, x_index_word, y_word_index,
-#      max_len_text, max_len_sum) = infr_params
-#
-#     def decode_validation_seq(it):
-#         result = decode_sequence(x_val[it].reshape(1, max_len_text), infr_params, debug_output)
-#         assert result, f"Empty result of type {type(result)} at item #{it}"
-#         return result
-#
-#     range_lo = max(0, min(item_range[0], len(x_val)))
-#     range_hi = min(item_range[1], len(x_val))
-#
-#     for item in range(range_lo, range_hi):
-#         review = _seq2text(x_val[item], x_index_word)
-#         sum_orig = _seq2summary(y_val[item], y_word_index, y_index_word)
-#         sum_pred = decode_validation_seq(item)
-#         if not silent:
-#             print("\nReview #%s: %s" % (item, review))
-#             print("Original summary:", sum_orig)
-#             print("Predicted summary:", sum_pred)
-#
 
 
 def decode_sequence(input_seq, infr_model: InferenceModel):
@@ -272,5 +192,37 @@ def test_validation_set(infr_model: InferenceModel, x_val, y_val, lexicon, item_
         print("\nReview #%s: %s" % (i, review))
         print("Original summary:", sum_orig)
         print("Predicted summary:", sum_pred)
+
+
+def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
+    (encoder_model, decoder_model,
+     (x_tkn, y_tkn, x_len, y_len)) = infr_model
+
+    def convert_to_sequences(words):
+        result = []
+        for it in words:
+            it = it.strip()
+            if it in x_tkn.word_index:
+                result.append(x_tkn.word_index[it])
+            elif debug_output:
+                print("Token doesn't exist on lexicon: %s"%it)
+
+        return nodetails.util.pad_sequences([result],
+                                            maxlen=x_len,
+                                            padding="post")[0]
+
+    query_cleaned = nodetails.preprocess.clean_text(query)
+
+    query_seq = convert_to_sequences(query_cleaned.split())
+    prediction = nodetails.nn.sequence_model.decode_sequence(query_seq.reshape(1, x_len),
+                                                             infr_model)
+    if debug_output:
+        print("\n == INFERENCE ==\n")
+
+        print("  Query:", query)
+        print("  query_cleaned:", query_cleaned)
+        print("  Summary:", prediction)
+
+    return prediction
 
 # END OF sequence_model.py
