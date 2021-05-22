@@ -5,47 +5,48 @@ High-level API for NoDetails abstractive summarization model
 import os.path
 import pandas
 import nodetails.util
+import nodetails.prep
 import nodetails.preprocess
 import nodetails.nn.sequence_model
-from nodetails.nn.sequence_model import InferenceParameters
+from nodetails.nn.sequence_model import (TrainingSet, Lexicon,
+                                         TrainingModel, InferenceModel)
 
 
-def create_model(data: pandas.DataFrame, max_len_text, max_len_sum, latent_dim=500, batch_size=128,
-                 verbose=True, show_epoch_graph=True, print_model_summary=True) -> InferenceParameters:
+def create_model(data: pandas.DataFrame, x_len, y_len, latent_dim=500, batch_size=128,
+                 show_epoch_graph=True, print_model_summary=True) -> (TrainingModel, InferenceModel):
     """Takes a pandas data frame, returns an InferenceParameters object"""
 
-    (x_train, y_train, x_val, y_val,
-     x_tokenizer, y_tokenizer) = nodetails.util.prepare_for_training(data, max_len_text, max_len_sum, verbose)
+    training_set, lexicon = nodetails.prep.prepare_training_set(
+        data, x_len=x_len, y_len=y_len, split=.1)
 
-    model_params = nodetails.nn.sequence_model.define_model(
-        x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim)
+    training_model, infr_model = nodetails.nn.sequence_model.define_model(
+        lexicon, latent_dim)
     
-    model = nodetails.nn.sequence_model.train_model(
-        model_params, (x_train, y_train), (x_val, y_val),
-        batch_size=batch_size,
+    training_model.model = nodetails.nn.sequence_model.train_model(
+        training_model, training_set, batch_size,
         show_graph=show_epoch_graph)
 
     if print_model_summary:
-        model.summary()
+        training_model.model.summary()
 
-    return nodetails.nn.sequence_model.prep_model_for_inference(model_params)
+    return training_model, infr_model
 
 
 def model_exists(save_directory, name):
     return os.path.isdir(f"{save_directory}/{name}.model")
 
 
-def save(infr_params: InferenceParameters, save_directory, name, verbose=True):
+def save(infr_params: InferenceModel, save_directory, name, verbose=True):
     nodetails.nn.sequence_model.save_sequence_model(
         infr_params, f"{save_directory}/{name}.model", verbose)
 
 
-def load(save_directory, name, verbose=True):
+def load(save_directory, name, verbose=True) -> InferenceModel:
     return nodetails.nn.sequence_model.load_sequence_model(
         f"{save_directory}/{name}.model", verbose)
 
 
-def make_inference(infr_params: InferenceParameters, query: str, debug_output=False):
+def make_inference(infr_params: InferenceModel, query: str, debug_output=False):
     (encoder_model, decoder_model,
      y_index_word, x_index_word, y_word_index,
      max_len_text, max_len_sum) = infr_params
