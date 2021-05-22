@@ -5,6 +5,7 @@ import re
 import nltk
 
 from nodetails import ExtractiveSummary
+from nodetails import stopwords_en
 
 
 # TODO(bora): `preset` parameter needs to be some kind of enum.
@@ -78,8 +79,7 @@ def score_sentences(sentences):
                "A list rexpected, '%s' found" % type(sentences)
         text = " ".join(sentences)
 
-    freq = calc_frequencies(text,
-                            stopwords=nltk.corpus.stopwords.words("english"))
+    freq = calc_frequencies(text, stopwords=stopwords_en)
 
     def update_score(scores, key, word, sent):
         if word in freq and len(sent.split(" ")) < 30:
