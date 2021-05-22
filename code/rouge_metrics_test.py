@@ -1,5 +1,5 @@
 import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import abstractive, extractive
+from nodetails import abstractive, ext
 from nodetails import evaluation
 
 if __name__ == "__main__":

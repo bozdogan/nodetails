@@ -1,15 +1,12 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-from nodetails import extractive, abstractive
+from nodetails import ext
+from nodetails import InferenceModel
 from nodetails.prep import clean_dataset
 
-# TODO(bora): This function is not universal. Needs to be modified before
-# processing different datasets.
+
 def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False):
     cachefile_name = f"{datafile}-cache-{nrows}.gz"
     
@@ -44,10 +41,10 @@ def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False
 
     return data
 
-# def summary_from_wikipedia(article_url, abst_model: InferenceParameters):
-#     extsum = extractive.get_summary_from_url(article_url, 10, preset="wikipedia")
-#     abstsum = abstractive.make_inference(abst_model, extsum.summary, debug_output=True)
-#
-#     return abstsum
+def summary_from_wikipedia(article_url, abs_infr_model: InferenceModel):
+    extsum = ext.get_summary_from_url(article_url, 10, preset="wikipedia")
+    abstsum = abs.make_inference(abs_infr_model, extsum.summary, debug_output=True)
+
+    return abstsum
 
 # END OF util.py

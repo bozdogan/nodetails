@@ -2,9 +2,8 @@ if __name__ == "__main__":
     import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
 
-from nodetails import enable_vram_growth
+from nodetails import enable_vram_growth, abs
 from nodetails import prep, util
-from nodetails.nn import sequence_model
 
 enable_vram_growth()
 import tensorflow as tf; tf.keras.backend.clear_session()
@@ -26,22 +25,22 @@ if __name__ == "__main__":
         dataset, x_len=max_len_text, y_len=max_len_sum, split=.1)
 
     # NOTE(bora): Deep learning part
-    training_model, infr_model = sequence_model.create_models(lexicon, 500)
+    training_model, infr_model = abs.create_models(lexicon, 500)
 
-    sequence_model.train_model(training_model, training_data,
-                               batch_size=128,
-                               show_graph=False)
+    abs.train_model(training_model, training_data,
+                    batch_size=128,
+                    show_graph=False)
 
     training_model.model.summary()
 
     # NOTE(bora): Save the model to disk
-    sequence_model.save_model(infr_model, f"{model_save_dir}/{model_name}.model",
-                              verbose=True)
+    abs.save_model(infr_model, f"{model_save_dir}/{model_name}.model",
+                   verbose=True)
     # NOTE(bora): Load the model from disk
-    infr_model_reloaded = sequence_model.load_model(f"{model_save_dir}/{model_name}.model",
-                                                    verbose=True)
+    infr_model_reloaded = abs.load_model(f"{model_save_dir}/{model_name}.model",
+                                         verbose=True)
 
-    sequence_model.test_validation_set(
+    abs.test_validation_set(
         infr_model_reloaded,
         training_data.x_val, training_data.y_val,
         lexicon, item_range=(0, 10))

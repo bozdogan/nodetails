@@ -10,6 +10,24 @@ from nodetails import TrainingSet, Lexicon
 from nodetails import (contraction_map_en as contraction_map, 
                        stopwords_en as stopwords)
 
+_long_word_threshold = 3
+
+
+def clean_text(txt, plain_input=False):
+    if plain_input:
+        txt = BeautifulSoup(txt.lower(), "lxml").text
+    txt = re.sub(r"\([^)]*\)", "", txt)
+    txt = re.sub("\"", "", txt)
+
+    txt = " ".join([contraction_map[it] if it in contraction_map else it
+                    for it in txt.split(" ")])
+
+    txt = re.sub(r"'s\b", "", txt)
+    txt = re.sub(r"[^a-zA-z]", " ", txt)
+
+    tokens = [it for it in txt.split() if it not in stopwords]
+    result = [it for it in tokens if len(it) > _long_word_threshold]
+    return (" ".join(result)).strip()
 
 def clean_dataset(dataset, plain_input=False,
                   keep_original=False) -> pd.DataFrame:
@@ -30,26 +48,10 @@ def clean_dataset(dataset, plain_input=False,
     intended to be a pandas DataFrame but a dictionary with list of
     strings in "text" and "sum" fields would work too.
     """
-    _long_word_threshold = 3
 
     # NOTE(bora): These won't work with non-English languages
     # out-of-the-box because non-English letters will be removed
     # as they're seen as special characters.
-    def clean_text(txt):
-        if plain_input:
-            txt = BeautifulSoup(txt.lower(), "lxml").text
-        txt = re.sub(r"\([^)]*\)", "", txt)
-        txt = re.sub("\"", "", txt)
-
-        txt = " ".join([contraction_map[it] if it in contraction_map else it
-                        for it in txt.split(" ")])
-        
-        txt = re.sub(r"'s\b", "", txt)
-        txt = re.sub(r"[^a-zA-z]", " ", txt)
-
-        tokens = [it for it in txt.split() if it not in stopwords]
-        result = [it for it in tokens if len(it) > _long_word_threshold]
-        return (" ".join(result)).strip()
 
     def clean_summary(sum):
         sum = re.sub("\"", "", sum)
@@ -68,7 +70,7 @@ def clean_dataset(dataset, plain_input=False,
     if keep_original:
         result["text_orig"] = dataset["text"]
         result["sum_orig"] = dataset["sum"]
-    result["text_cleaned"] = [clean_text(it) for it in dataset["text"]]
+    result["text_cleaned"] = [clean_text(it, plain_input) for it in dataset["text"]]
     result["sum_cleaned"] = [clean_summary(it) for it in dataset["sum"]]
 
     result["sum_cleaned"] = result["sum_cleaned"].replace("", np.nan)
@@ -104,6 +106,5 @@ def prepare_training_set(dataset, x_len=150, y_len=12, split=.1) -> (TrainingSet
     y_len += 1
 
     return TrainingSet(x_train, y_train, x_val, y_val), Lexicon(x_tkn, y_tkn, x_len, y_len)
-
 
 # END OF prep.py

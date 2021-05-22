@@ -7,7 +7,7 @@ from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
 
 import nodetails.nn
-import nodetails.preprocess
+import nodetails.prep
 import nodetails.util
 
 from nodetails import *
@@ -207,15 +207,14 @@ def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
             elif debug_output:
                 print("Token doesn't exist on lexicon: %s"%it)
 
-        return nodetails.util.pad_sequences([result],
+        return nodetails.prep.pad_sequences([result],
                                             maxlen=x_len,
                                             padding="post")[0]
 
-    query_cleaned = nodetails.preprocess.clean_text(query)
+    query_cleaned = nodetails.prep.clean_text(query)
 
     query_seq = convert_to_sequences(query_cleaned.split())
-    prediction = nodetails.nn.sequence_model.decode_sequence(query_seq.reshape(1, x_len),
-                                                             infr_model)
+    prediction = decode_sequence(query_seq.reshape(1, x_len), infr_model)
     if debug_output:
         print("\n == INFERENCE ==\n")
 
@@ -225,4 +224,4 @@ def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
 
     return prediction
 
-# END OF sequence_model.py
+# END OF abs.py

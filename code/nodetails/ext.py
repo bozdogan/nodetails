@@ -19,7 +19,7 @@ def split_paragraphs(html, preset="wikipedia"):
         paragraphs = []
         for i, p in enumerate(p_tags):
             para = p.text
-            para = re.sub(r"\[[0-9]*\]", " ", para)
+            para = re.sub(r"\[[0-9]*]", " ", para)
 
             # NOTE(bora): This line messes "Citation Needed" article and 
             # doesn't really help with general articles that much, so.
@@ -73,6 +73,7 @@ def score_sentences(sentences):
         tagged = True
         text = " ".join(sentences.values())
     else:
+        tagged = False
         assert isinstance(sentences, list), \
                "A list rexpected, '%s' found" % type(sentences)
         text = " ".join(sentences)
@@ -131,4 +132,4 @@ def get_summary(article, length=7, preset="wikipedia"):
 
     return ExtractiveSummary(summary, reference, sentences, paragraphs)
 
-# END OF extractive.py
+# END OF ext.py
