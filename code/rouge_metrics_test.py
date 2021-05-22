@@ -1,11 +1,11 @@
 import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import abstractive, ext
+from nodetails import abs, ext
 from nodetails import evaluation
 
 if __name__ == "__main__":
     # model_dir = "../data/_models"
     # model_name = f"nodetails--food_reviews--80-10--None"
-    # absmodel = abstractive.load(model_dir, model_name, verbose=True)
+    # absmodel = abs.load_model(f"{model_dir}/{model_name}.model", verbose=True)
 
     # text = ("My main use for almond, soy, or rice milk is to use in coffee "
     #         "or tea.  The best so far is Silk soymilk original but this Silk "
