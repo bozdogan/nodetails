@@ -10,43 +10,42 @@ from nodetails import ModelSpecs, InferenceParameters
 from nodetails.nn.attention import Attention
 
 
-def define_model(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim=500):
-    x_voc_size = len(x_tokenizer.word_index) + 1
-    y_voc_size = len(y_tokenizer.word_index) + 1
+def define_model(x_tkn, y_tkn, x_len, y_len, latent_dim=500):
+    encoder_vocab = len(x_tkn.word_index) + 1
+    decoder_vocab = len(y_tkn.word_index) + 1
 
-    tf.keras.backend.clear_session()
+    encoder_input = layers.Input(shape=(x_len,))
+    embedded1 = layers.Embedding(encoder_vocab, latent_dim, trainable=True, input_shape=(x_len,))(encoder_input)
 
-    enc_input = layers.Input(shape=(max_len_text,))
-    enc_embedding = layers.Embedding(x_voc_size, latent_dim, trainable=True, input_shape=(max_len_text,))(enc_input)
+    hidden_layer1 = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
+    hidden1, _, _ = hidden_layer1(embedded1)
 
-    enc_lstm1 = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
-    enc_lstm1_out, _, _ = enc_lstm1(enc_embedding)
+    hidden_layer2 = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
+    hidden2, _, _ = hidden_layer2(hidden1)
 
-    enc_lstm2 = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
-    enc_lstm2_out, _, _ = enc_lstm2(enc_lstm1_out)
+    hidden_layer3 = layers.LSTM(latent_dim, return_state=True, return_sequences=True)
+    encoder_output, state_h, state_c = hidden_layer3(hidden2)
+    encoder_state = state_h, state_c
 
-    enc_lstm3 = layers.LSTM(latent_dim, return_state=True, return_sequences=True)
-    enc_output, state_h, state_c = enc_lstm3(enc_lstm2_out)
+    decoder_input = layers.Input(shape=(None,))
+    decoder_embedding = layers.Embedding(decoder_vocab, latent_dim, trainable=True)
+    embedded2 = decoder_embedding(decoder_input)
 
-    dec_input = layers.Input(shape=(None,))
-    dec_embedding = layers.Embedding(y_voc_size, latent_dim, trainable=True)
-    dec_embedding_out = dec_embedding(dec_input)
+    decoder_lstm = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
+    decoder_output, _, _ = decoder_lstm(embedded2, initial_state=encoder_state)
 
-    # NOTE(bora): Decoder LSTM is initialized with encoder states
-    dec_lstm = layers.LSTM(latent_dim, return_sequences=True, return_state=True)
-    dec_output, _fwd_state, _bkw_state = dec_lstm(dec_embedding_out, initial_state=[state_h, state_c])
+    attention = Attention()
+    hidden4, _ = attention([encoder_output, decoder_output])
 
-    attn = Attention()
-    attn_out, attn_states = attn([enc_output, dec_output])
+    hidden5 = layers.Concatenate(axis=-1)([decoder_output, hidden4])
 
-    dec_concat_input = layers.Concatenate(axis=-1)([dec_output, attn_out])
+    decoder_dense = layers.TimeDistributed(
+        layers.Dense(decoder_vocab, activation="softmax"))
+    decoder_output = decoder_dense(hidden5)
 
-    dec_dense = layers.TimeDistributed(layers.Dense(y_voc_size, activation="softmax"))
-    dec_output = dec_dense(dec_concat_input)
-
-    return ModelSpecs(x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
-                      enc_input, enc_output, state_h, state_c,
-                      dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn)
+    return ModelSpecs(x_tkn, y_tkn, x_len, y_len, latent_dim,
+                      encoder_input, encoder_output, state_h, state_c,
+                      decoder_input, decoder_output, decoder_embedding, decoder_lstm, decoder_dense, attention)
 
 
 def train_model(model_params: ModelSpecs, training_data, validation_data, batch_size=128, show_graph=True):
