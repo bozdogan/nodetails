@@ -25,7 +25,7 @@ def define_model(x_tkn, y_tkn, x_len, y_len, latent_dim=500):
 
     hidden_layer3 = layers.LSTM(latent_dim, return_state=True, return_sequences=True)
     encoder_output, state_h, state_c = hidden_layer3(hidden2)
-    encoder_state = state_h, state_c
+    encoder_state = [state_h, state_c]
 
     decoder_input = layers.Input(shape=(None,))
     decoder_embedding = layers.Embedding(decoder_vocab, latent_dim, trainable=True)
@@ -41,11 +41,11 @@ def define_model(x_tkn, y_tkn, x_len, y_len, latent_dim=500):
 
     decoder_dense = layers.TimeDistributed(
         layers.Dense(decoder_vocab, activation="softmax"))
-    decoder_output = decoder_dense(hidden5)
+    output = decoder_dense(hidden5)
 
     return ModelSpecs(x_tkn, y_tkn, x_len, y_len, latent_dim,
                       encoder_input, encoder_output, state_h, state_c,
-                      decoder_input, decoder_output, decoder_embedding, decoder_lstm, decoder_dense, attention)
+                      decoder_input, output, decoder_embedding, decoder_lstm, decoder_dense, attention)
 
 
 def train_model(model_params: ModelSpecs, training_data, validation_data, batch_size=128, show_graph=True):
@@ -79,39 +79,30 @@ def train_model(model_params: ModelSpecs, training_data, validation_data, batch_
 def prep_model_for_inference(model_params: ModelSpecs):
     (x_tokenizer, y_tokenizer, max_len_text, max_len_sum, latent_dim,
      enc_input, enc_output, state_h, state_c,
-     dec_input, dec_output, dec_embedding, dec_lstm, dec_dense, attn) = model_params
+     decoder_input, dec_output, dec_embedding, decoder_lstm, decoder_dense, attention) = model_params
 
-    # NOTE(bora): Encoder inference
-    encoder_model = Model(inputs=enc_input, outputs=[enc_output, state_h, state_c])
+    infr_encoder_model = Model(inputs=enc_input,
+                               outputs=[enc_output, state_h, state_c])
 
-    # NOTE(bora): Decoder inference
-    # NOTE(bora): Keep track of states from the previous time step
-    decoder_state_input_h = layers.Input(shape=(latent_dim,))
-    decoder_state_input_c = layers.Input(shape=(latent_dim,))
-    decoder_hidden_state_input = layers.Input(shape=(max_len_text, latent_dim))
+    infr_prev_h = layers.Input(shape=(latent_dim,))
+    infr_prev_c = layers.Input(shape=(latent_dim,))
+    infr_prev_hidden = layers.Input(shape=(max_len_text, latent_dim))
+    infr_embedded = dec_embedding(decoder_input)
 
-    # NOTE(bora): Get the embeddings of the decoder sequence
-    dec_emb2 = dec_embedding(dec_input)
+    infr_hidden1, infr_state_h, infr_state_c = decoder_lstm(
+        infr_embedded, initial_state=[infr_prev_h, infr_prev_c])
+    infr_hidden2, _ = attention([infr_prev_hidden, infr_hidden1])
+    infr_hidden3 = layers.Concatenate(axis=-1)([infr_hidden1, infr_hidden2])
 
-    # NOTE(bora): Set the initial states to the states from the previous time step
-    decoder_outputs2, state_h2, state_c2 = dec_lstm(dec_emb2,
-                                                    initial_state=[decoder_state_input_h, decoder_state_input_c])
-
-    # NOTE(bora): Attention inference
-    attn_out_inf, attn_states_inf = attn([decoder_hidden_state_input, decoder_outputs2])
-    decoder_inf_concat = layers.Concatenate(axis=-1, name="concat")([decoder_outputs2, attn_out_inf])
-
-    # NOTE(bora): A dense softmax layer to generate prob dist. over the target vocabulary
-    decoder_outputs2 = dec_dense(decoder_inf_concat)
-
-    decoder_model = Model([dec_input] + [decoder_hidden_state_input, decoder_state_input_h, decoder_state_input_c],
-                          [decoder_outputs2] + [state_h2, state_c2])
+    infr_output = decoder_dense(infr_hidden3)
+    decoder_model = Model([decoder_input] + [infr_prev_hidden, infr_prev_h, infr_prev_c],
+                          [infr_output] + [infr_state_h, infr_state_c])
 
     y_index_word = y_tokenizer.index_word
     x_index_word = x_tokenizer.index_word
     y_word_index = y_tokenizer.word_index
 
-    return InferenceParameters(encoder_model, decoder_model,
+    return InferenceParameters(infr_encoder_model, decoder_model,
                                y_index_word, x_index_word, y_word_index,
                                max_len_text, max_len_sum)
 
