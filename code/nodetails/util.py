@@ -7,6 +7,36 @@ from nodetails import InferenceModel
 from nodetails.prep import clean_dataset
 
 
+def cached(fn):
+    def cached_wrapper(datafile, nrows=None, renaming_map=None,
+                       cache_dir=None, verbose=False):
+        if renaming_map is None:
+            renaming_map = {"Text": "text", "Summary": "sum"}
+        if cache_dir is None:
+            cache_dir = osp.dirname(datafile)
+
+        cache_filename = osp.join(cache_dir, f"{osp.basename(datafile)}-cache-{nrows}.gz")
+
+        if osp.exists(cache_filename):
+            if verbose:
+                print("Cached data found")
+                print("Loading preprocessed file")
+            data = pd.read_pickle(cache_filename)
+        else:
+            data = fn(datafile, renaming_map, nrows)
+
+            if verbose:
+                print("Saving preprocessed data to cache file")
+            data.to_pickle(cache_filename)
+
+        if verbose:
+            print("\nCounting words")
+
+        return data
+
+    return cached_wrapper
+
+
 def read_dataset_csv(input_file, renaming_map: dict, nrows=None):
     data = (pd.read_csv(input_file, nrows=nrows)
               .rename(columns=renaming_map)
@@ -17,31 +47,7 @@ def read_dataset_csv(input_file, renaming_map: dict, nrows=None):
     return data
 
 
-def cached_read_dataset(datafile, nrows=None, renaming_map=None,
-                        cache_dir=None, verbose=False):
-    if renaming_map is None:
-        renaming_map = {"Text": "text", "Summary": "sum"}
-    if cache_dir is None:
-        cache_dir = osp.dirname(datafile)
-
-    cache_filename = osp.join(cache_dir, f"{osp.basename(datafile)}-cache-{nrows}.gz")
-    
-    if osp.exists(cache_filename):
-        if verbose:
-            print("Cached data found")
-            print("Loading preprocessed file")
-        data = pd.read_pickle(cache_filename)
-    else:
-        data = read_dataset_csv(datafile, renaming_map, nrows)
-
-        if verbose:
-            print("Saving preprocessed data to cache file")
-        data.to_pickle(cache_filename)
-
-    if verbose:
-        print("\nCounting words")
-
-    return data
+cached_read_dataset_csv = cached(read_dataset_csv)
 
 
 def show_word_count_graphs(data: pd.DataFrame, hist_bins=30):
