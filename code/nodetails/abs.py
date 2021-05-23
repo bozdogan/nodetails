@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
@@ -10,8 +10,7 @@ import nodetails.nn
 import nodetails.prep
 import nodetails.util
 
-from nodetails import *
-from nodetails import InferenceModel
+from nodetails.types import *
 from nodetails.nn.attention import Attention
 
 
@@ -174,7 +173,7 @@ def decode_sequence(input_seq, infr_model: InferenceModel):
     return " ".join(result)
 
 
-def seq2text(input_seq, tkn):
+def seq2text(input_seq, tkn: keras.preprocessing.text.Tokenizer):
     result = [tkn.index_word[it] for it in input_seq if it != 0]
     return " ".join(result)
 

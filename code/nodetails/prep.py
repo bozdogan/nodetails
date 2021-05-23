@@ -6,7 +6,7 @@ import sklearn.model_selection
 from tensorflow import keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences 
 
-from nodetails import TrainingSet, Lexicon
+from nodetails.types import *
 from nodetails import (contraction_map_en as contraction_map, 
                        stopwords_en as stopwords)
 
@@ -29,6 +29,7 @@ def clean_text(txt, plain_input=False):
     result = [it for it in tokens if len(it) > _long_word_threshold]
     return (" ".join(result)).strip()
 
+
 def clean_dataset(dataset, plain_input=False,
                   keep_original=False) -> pd.DataFrame:
     """Prepare a dataset to processed in a NLP environment
@@ -40,13 +41,24 @@ def clean_dataset(dataset, plain_input=False,
       - Remove extra whitespace, and
       - Remove special characters.
     Optionally keep the original text in the resulted object.
-    
+
     (*) If `plain_input` is set to True, HTML tags will not be parsed. 
 
     The `dataset` variable must contain "text" and "sum" keys which
     corresponds the text body and summary, respectively. `dataset` is
     intended to be a pandas DataFrame but a dictionary with list of
     strings in "text" and "sum" fields would work too.
+
+    Args:
+        dataset: Input data. Must be a DataFrame or `dict`
+        plain_input: If set True, HTML tags will not be parsed.
+        keep_original: Whether to keep the unprocessed data
+
+    Returns:
+        pandas.DataFrame: A DataFrame with "text_cleaned" and "sum_cleaned" columns
+
+        If `keep_original` is True, "text_orig" and "sum_orig" columns
+        will be present.
     """
 
     # NOTE(bora): These won't work with non-English languages

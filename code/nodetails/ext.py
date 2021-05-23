@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import nltk
 
-from nodetails import ExtractiveSummary
+from nodetails.types import *
 from nodetails import stopwords_en
 
 

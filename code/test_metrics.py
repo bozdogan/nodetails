@@ -30,4 +30,4 @@ if __name__ == "__main__":
     scores = evaluation.get_rogue_f1_score(sum_pred, sum_orig)
     print(scores)
 
-# END OF rogue_metrics_text.py
+# END OF test_metrics.py

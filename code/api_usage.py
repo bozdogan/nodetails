@@ -7,9 +7,9 @@ if __name__ == "__main__":
     # tensorflow.python.framework.errors_impl.InternalError:  Blas GEMM launch failed : a.shape=(80, 500), b.shape=(500, 500), m=80, n=500, k=500
     # 	 [[{{node model_2/attention/while/body/_1/model_2/attention/while/MatMul}}]] [Op:__inference_predict_function_4374]
 
-import nodetails.ext
 import os.path as osp
 import nodetails.abs
+import nodetails.ext
 
 
 if __name__ == "__main__":
@@ -37,9 +37,9 @@ if __name__ == "__main__":
     # with Attention based on Recurrent Neural Networks. We need to load a trained
     # model before making an inference.
     #
-    # See nodetails.abs_py for training code
+    # For training the model, see test_abstractive_sum.py
     model_dir = "../data/_models"
-    model_name = f"nodetails--food_reviews--80-10--1000.model"
+    model_name = f"nodetails--food_reviews--80-10--None.model"
     infr_params = nodetails.abs.load_model(osp.join(model_dir, model_name), verbose=True)
 
     text = ("My main use for almond, soy, or rice milk is to use in coffee "

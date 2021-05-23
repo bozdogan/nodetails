@@ -1,45 +1,56 @@
-import os
+import os.path as osp
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from nodetails import ext
+from nodetails import abs, ext
 from nodetails import InferenceModel
 from nodetails.prep import clean_dataset
 
 
-def preprocess_dataset(datafile, nrows=None, verbose=False, show_histogram=False):
-    cachefile_name = f"{datafile}-cache-{nrows}.gz"
+def read_csv(input_file, renaming_map: dict, nrows=None):
+    data = (pd.read_csv(input_file, nrows=nrows)
+              .rename(columns=renaming_map)
+              .drop_duplicates(subset=["text"])
+              .dropna())
+
+    data = clean_dataset(data, keep_original=True)
+    return data
+
+
+def cached_read_dataset(datafile, nrows=None, verbose=False, cache_dir=None):
+    if cache_dir is None:
+        cache_dir = osp.dirname(datafile)
+
+    cache_filename = osp.join(cache_dir, f"{osp.basename(datafile)}-cache-{nrows}.gz")
     
-    if os.path.exists(cachefile_name):
+    if osp.exists(cache_filename):
         if verbose:
             print("Cached data found")
             print("Loading preprocessed file")
-        data = pd.read_pickle(cachefile_name)
+        data = pd.read_pickle(cache_filename)
     else:
-        data = (pd.read_csv(datafile, nrows=nrows)
-                  .drop_duplicates(subset=["Text"])
-                  .dropna()
-                  .rename(columns={"Text": "text", "Summary": "sum"}))
-
-        data = clean_dataset(data, keep_original=True)
+        data = read_and_clean_csv(datafile, {"Text": "text", "Summary": "sum"}, nrows)
 
         if verbose:
             print("Saving preprocessed data to cache file")
-        data.to_pickle(cachefile_name)
+        data.to_pickle(cache_filename)
 
     if verbose:
         print("\nCounting words")
 
-    if show_histogram:
-        text_word_count = [len(it.split()) for it in data["text_cleaned"]]
-        summary_word_count = [len(it.split()) for it in data["sum_cleaned"]]
-        
-        length_df = pd.DataFrame({"text": text_word_count, "summary": summary_word_count})
-        print("Here are histograms")
-        length_df.hist(bins=30)
-        plt.show()
-
     return data
+
+
+def show_word_count_graphs(data: pd.DataFrame, hist_bins=30):
+    txt_word_count = [len(it.split()) for it in data["text_cleaned"]]
+    sum_word_count = [len(it.split()) for it in data["sum_cleaned"]]
+
+    (pd.DataFrame({"Text": txt_word_count,
+                   "Summary": sum_word_count})
+       .hist(bins=hist_bins))
+
+    plt.show()
+
 
 def summary_from_wikipedia(article_url, abs_infr_model: InferenceModel):
     extsum = ext.get_summary_from_url(article_url, 10, preset="wikipedia")
