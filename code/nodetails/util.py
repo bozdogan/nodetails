@@ -23,7 +23,7 @@ def cached(fn):
                 print("Loading preprocessed file")
             data = pd.read_pickle(cache_filename)
         else:
-            data = fn(datafile, renaming_map, nrows)
+            data = fn(datafile, renaming_map=renaming_map, nrows=nrows)
 
             if verbose:
                 print("Saving preprocessed data to cache file")
