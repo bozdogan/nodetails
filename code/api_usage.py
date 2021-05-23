@@ -1,9 +1,15 @@
 """
 This module demonstrates basic usage of NoDetails API.
 """
+if __name__ == "__main__":
+    from nodetails import enable_vram_growth; enable_vram_growth()
+    # NOTE(bora): This prevent errors like this:
+    # tensorflow.python.framework.errors_impl.InternalError:  Blas GEMM launch failed : a.shape=(80, 500), b.shape=(500, 500), m=80, n=500, k=500
+    # 	 [[{{node model_2/attention/while/body/_1/model_2/attention/while/MatMul}}]] [Op:__inference_predict_function_4374]
 
-import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import abstractive, extractive
+import os.path as osp
+import nodetails.abs
+import nodetails.ext
 
 
 if __name__ == "__main__":
@@ -13,7 +19,7 @@ if __name__ == "__main__":
 
     # Extractive summarization doesn't require training. You can directly use
     # api functions without prior preparation steps.
-    extractive_summary = extractive.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed")
+    extractive_summary = nodetails.ext.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed")
     print(extractive_summary.summary)
 
     # Extractive summary is some subset of sentences from the original article.
@@ -31,10 +37,10 @@ if __name__ == "__main__":
     # with Attention based on Recurrent Neural Networks. We need to load a trained
     # model before making an inference.
     #
-    # See nodetails.abs_py for training code
+    # For training the model, see test_abstractive_sum.py
     model_dir = "../data/_models"
-    model_name = f"nodetails--food_reviews--80-10--None"
-    infr_params = abstractive.load(model_dir, model_name, verbose=True)
+    model_name = f"nodetails--food_reviews--80-10--None.model"
+    infr_params = nodetails.abs.load_model(osp.join(model_dir, model_name), verbose=True)
 
     text = ("My main use for almond, soy, or rice milk is to use in coffee "
             "or tea.  The best so far is Silk soymilk original but this Silk "
@@ -45,7 +51,7 @@ if __name__ == "__main__":
             "fair price.  But now it's off the Subscribe and Save program "
             "so the cost will go up. I intend to continue buying either "
             "Silk almond or Silk soy milk because they are the best for me.")
-    abstractive_summary = abstractive.make_inference(infr_params, text)
+    abstractive_summary = nodetails.abs.make_inference(infr_params, text)
     print(abstractive_summary)
 
     #
@@ -53,8 +59,8 @@ if __name__ == "__main__":
     # ----------
 
     # We intend to combine these two methods into a more flexible solution:
-    extsum = extractive.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed").summary
-    integrated_example = abstractive.make_inference(infr_params, extsum)
+    extsum = nodetails.ext.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed").summary
+    integrated_example = nodetails.abs.make_inference(infr_params, extsum)
 
     print(integrated_example)
     print(extsum)
