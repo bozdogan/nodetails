@@ -8,7 +8,7 @@ from nodetails.prep import clean_dataset
 
 
 def cached(fn):
-    def cached_wrapper(datafile, nrows=None, renaming_map=None,
+    def cached_wrapper(datafile, renaming_map=None, nrows=None,
                        cache_dir=None, verbose=False):
         if renaming_map is None:
             renaming_map = {"Text": "text", "Summary": "sum"}
