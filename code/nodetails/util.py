@@ -7,7 +7,7 @@ from nodetails import InferenceModel
 from nodetails.prep import clean_dataset
 
 
-def read_csv(input_file, renaming_map: dict, nrows=None):
+def read_dataset_csv(input_file, renaming_map: dict, nrows=None):
     data = (pd.read_csv(input_file, nrows=nrows)
               .rename(columns=renaming_map)
               .drop_duplicates(subset=["text"])
@@ -17,7 +17,10 @@ def read_csv(input_file, renaming_map: dict, nrows=None):
     return data
 
 
-def cached_read_dataset(datafile, nrows=None, verbose=False, cache_dir=None):
+def cached_read_dataset(datafile, nrows=None, renaming_map=None,
+                        cache_dir=None, verbose=False):
+    if renaming_map is None:
+        renaming_map = {"Text": "text", "Summary": "sum"}
     if cache_dir is None:
         cache_dir = osp.dirname(datafile)
 
@@ -29,7 +32,7 @@ def cached_read_dataset(datafile, nrows=None, verbose=False, cache_dir=None):
             print("Loading preprocessed file")
         data = pd.read_pickle(cache_filename)
     else:
-        data = read_and_clean_csv(datafile, {"Text": "text", "Summary": "sum"}, nrows)
+        data = read_dataset_csv(datafile, renaming_map, nrows)
 
         if verbose:
             print("Saving preprocessed data to cache file")

@@ -12,15 +12,16 @@ if __name__ == "__main__":
     DATA_DIR = "../data"
     model_save_dir = f"{DATA_DIR}/_models"
 
-    input_file = f"{DATA_DIR}/food_reviews/Reviews.csv"
-    input_size = None  # NOTE(bora): `None` to import the entire dataset
+    input_file = f"{DATA_DIR}/wikihow_articles/wikihowAll.csv"
+    input_size = 10000  # NOTE(bora): `None` to import the entire dataset
     
-    dataset_name = "food_reviews"
+    dataset_name = "wikihow"
     max_len_text = 80
     max_len_sum = 10
     model_name = f"nodetails--{dataset_name}--{max_len_text}-{max_len_sum}--{input_size}"
 
-    dataset = util.cached_read_dataset(input_file, nrows=input_size, verbose=True)
+    dataset = util.cached_read_dataset(input_file, nrows=input_size,
+                                       renaming_map={"text": "text", "title": "sum"}, verbose=True)
     training_data, lexicon = prep.prepare_training_set(
         dataset, x_len=max_len_text, y_len=max_len_sum, split=.1)
 

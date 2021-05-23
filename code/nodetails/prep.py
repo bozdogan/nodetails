@@ -14,7 +14,7 @@ _long_word_threshold = 3
 
 
 def clean_text(txt, plain_input=False):
-    if plain_input:
+    if not plain_input:
         txt = BeautifulSoup(txt.lower(), "lxml").text
     txt = re.sub(r"\([^)]*\)", "", txt)
     txt = re.sub("\"", "", txt)
