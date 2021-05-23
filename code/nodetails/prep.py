@@ -26,7 +26,7 @@ def clean_text(txt, plain_input=False):
     txt = re.sub(r"[^a-zA-z]", " ", txt)
 
     tokens = [it for it in txt.split() if it not in stopwords]
-    result = [it for it in tokens if len(it) > _long_word_threshold]
+    result = [it for it in tokens if len(it) >= _long_word_threshold]
     return (" ".join(result)).strip()
 
 

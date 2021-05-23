@@ -12,10 +12,10 @@ if __name__ == "__main__":
     DATA_DIR = "../data"
     model_save_dir = f"{DATA_DIR}/_models"
 
-    input_file = f"{DATA_DIR}/food_reviews/Reviews.csv"
-    input_size = None  # NOTE(bora): `None` to import the entire dataset
+    input_file = f"{DATA_DIR}/wikihow_articles/wikihowAll.csv"
+    input_size = 10000  # NOTE(bora): `None` to import the entire dataset
     
-    dataset_name = "food_reviews"
+    dataset_name = "wikihow"
     max_len_text = 80
     max_len_sum = 10
     model_name = f"nodetails--{dataset_name}--{max_len_text}-{max_len_sum}--{input_size}"
