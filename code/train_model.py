@@ -18,6 +18,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", default=128, type=int)
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("-vv", "--show-graph", action="store_true")
+    parser.add_argument("--text-col", default="text")
+    parser.add_argument("--sum-col", default="sum")
 
     args = parser.parse_args()
 
@@ -25,7 +27,9 @@ if __name__ == "__main__":
     model_name = f"nodetails--{dataset_name}{args.x_len}-{args.y_len}--{args.nrows}"
 
     dataset = util.cached_read_dataset_csv(
-        args.input_file, nrows=args.nrows, renaming_map={"text": "text", "title": "sum"}, verbose=args.verbose)
+        args.input_file, nrows=args.nrows,
+        renaming_map={args.text_col: "text", args.sum_col: "sum"},
+        verbose=args.verbose)
     training_data, lexicon = prep.prepare_training_set(
         dataset, x_len=args.x_len, y_len=args.y_len, split=.1)
 
@@ -37,7 +41,8 @@ if __name__ == "__main__":
                     batch_size=args.batch_size, show_graph=args.show_graph)
     print("Training done")
 
-    abs.save_model(infr_model, f"{args.save_dir}/{model_name}.model", verbose=args.verbose)
+    abs.save_model(infr_model, f"{args.save_dir}/{model_name}.model",
+                   verbose=args.verbose)
 
     print("Done")
 
