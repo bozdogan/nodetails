@@ -1,4 +1,3 @@
-#!python
 import argparse
 from nodetails import enable_vram_growth
 from nodetails import abs, prep, util
