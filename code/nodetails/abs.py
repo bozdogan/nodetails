@@ -11,10 +11,11 @@ import nodetails.prep
 import nodetails.util
 
 from nodetails.types import *
+from nodetails import is_debug
 from nodetails.nn.attention import Attention
 
 
-def create_models(lexicon: Lexicon, latent_dim=500):
+def create_models(lexicon: Lexicon, latent_dim=500) -> (TrainingModel, InferenceModel):
     x_tkn, y_tkn, x_len, y_len = lexicon
 
     encoder_vocab = len(x_tkn.word_index) + 1
@@ -82,11 +83,11 @@ def train_model(training_model: TrainingModel, training_set: TrainingSet,
     model = training_model.model
 
     model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy")
-    es = EarlyStopping(monitor="val_loss", mode="min", verbose=1)
+    early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=is_debug())
 
     history = model.fit([x_train, y_train[:, :-1]],
                         y_train.reshape(y_train.shape[0], y_train.shape[1], 1)[:, 1:],
-                        epochs=50, callbacks=[es], batch_size=batch_size,
+                        epochs=50, callbacks=[early_stopping], batch_size=batch_size,
                         validation_data=([x_val, y_val[:, :-1]],
                                          y_val.reshape(y_val.shape[0], y_val.shape[1], 1)[:, 1:]))
 
@@ -100,26 +101,26 @@ def train_model(training_model: TrainingModel, training_set: TrainingSet,
     return model
 
 
-def save_model(infr_model: InferenceModel, save_location, verbose=True):
+def save_model(infr_model: InferenceModel, save_location):
     encoder_model, decoder_model, lexicon = infr_model
-    if verbose:
+    if is_debug():
         print(f"Saving model at {save_location}")
 
     encoder_model.save(f"{save_location}/encoder.h5")
     decoder_model.save(f"{save_location}/decoder.h5")
-    if verbose:
+    if is_debug():
         print(f"Encoder and decoder is saved.")
 
     params = lexicon
 
     with open(f"{save_location}/parameters.pkl", "wb") as fp:
         pickle.dump(params, fp)
-    if verbose:
+    if is_debug():
         print(f"Model saved")
 
 
-def load_model(save_location, verbose=True) -> InferenceModel:
-    if verbose:
+def load_model(save_location) -> InferenceModel:
+    if is_debug():
         print(f"Loading model from {save_location}")
 
     encoder_model = keras_load_model(f"{save_location}/encoder.h5",
@@ -128,12 +129,12 @@ def load_model(save_location, verbose=True) -> InferenceModel:
     decoder_model = keras_load_model(f"{save_location}/decoder.h5",
                                      custom_objects={"Attention": Attention},
                                      compile=False)
-    if verbose:
+    if is_debug():
         print(f"Encoder and decoder is loaded.")
 
     with open(f"{save_location}/parameters.pkl", "rb") as fp:
         lexicon = pickle.load(fp)
-    if verbose:
+    if is_debug():
         print(f"Model loaded")
 
     return InferenceModel(encoder_model, decoder_model, lexicon)
@@ -197,7 +198,7 @@ def test_validation_set(infr_model: InferenceModel, x_val, y_val, lexicon, item_
         print("Predicted summary:", sum_pred)
 
 
-def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
+def make_inference(infr_model: InferenceModel, query: str):
     (encoder_model, decoder_model,
      (x_tkn, y_tkn, x_len, y_len)) = infr_model
 
@@ -207,7 +208,7 @@ def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
             it = it.strip()
             if it in x_tkn.word_index:
                 result.append(x_tkn.word_index[it])
-            elif debug_output:
+            elif is_debug():
                 print("Token doesn't exist on lexicon: %s"%it)
 
         return nodetails.prep.pad_sequences([result],
@@ -218,7 +219,7 @@ def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
 
     query_seq = convert_to_sequences(query_cleaned.split())
     prediction = decode_sequence(query_seq.reshape(1, x_len), infr_model)
-    if debug_output:
+    if is_debug():
         print("\n == INFERENCE ==\n")
 
         print("  Query:", query)

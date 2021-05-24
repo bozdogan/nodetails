@@ -1,12 +1,13 @@
-if __name__ == "__main__":
-    import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # NOTE(bora): Uncomment and modify this line according to your hardware setup
+import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 
-from nodetails import enable_vram_growth
+
+import nodetails
 from nodetails import abs, prep, util
 
-enable_vram_growth()
-import tensorflow as tf; tf.keras.backend.clear_session()
+import tensorflow.keras.backend as K; K.clear_session()
+nodetails.enable_vram_growth()
+nodetails._DEBUG = True
+
 
 if __name__ == "__main__":
     DATA_DIR = "../data"
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     model_name = f"nodetails--{dataset_name}--{max_len_text}-{max_len_sum}--{input_size}"
 
     dataset = util.cached_read_dataset_csv(input_file, nrows=input_size,
-                                           renaming_map={"text": "text", "title": "sum"}, verbose=True)
+                                           renaming_map={"text": "text", "title": "sum"})
     training_data, lexicon = prep.prepare_training_set(
         dataset, x_len=max_len_text, y_len=max_len_sum, split=.1)
 
@@ -38,11 +39,9 @@ if __name__ == "__main__":
                         show_graph=True)
 
         # NOTE(bora): Save the model to disk
-        abs.save_model(infr_model, f"{model_save_dir}/{model_name}.model",
-                       verbose=True)
+        abs.save_model(infr_model, f"{model_save_dir}/{model_name}.model")
     # NOTE(bora): Load the model from disk
-    infr_model_reloaded = abs.load_model(f"{model_save_dir}/{model_name}.model",
-                                         verbose=True)
+    infr_model_reloaded = abs.load_model(f"{model_save_dir}/{model_name}.model")
 
     abs.test_validation_set(
         infr_model_reloaded,

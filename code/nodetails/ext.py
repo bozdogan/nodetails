@@ -5,6 +5,7 @@ import re
 import nltk
 
 from nodetails.types import *
+from nodetails import is_debug
 from nodetails import stopwords_en
 
 
