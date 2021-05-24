@@ -1,33 +1,66 @@
 import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import abs, ext
+from nodetails import abs, util, prep
 from nodetails import evaluation
 
+import nodetails
+nodetails.enable_vram_growth()
+nodetails.set_debug(True)
+
+
+def mean(L):
+    return sum(L)/len(L)
+
+
+def score_validation_set(abs_model, x_val, y_val, lexicon,
+                          item_range=(0, 1), depug_output=False):
+    x_tkn, y_tkn, x_len, y_len = lexicon
+
+    def decode_validation_seq(it):
+        result = abs.decode_sequence(it.reshape(1, x_len), abs_model)
+        assert result, f"Empty result of type {type(result)} at item #{it}"
+        return result
+
+    rouge1 = []
+    rouge2 = []
+    rougeL = []
+    for i in range(*item_range):
+        review = abs.seq2text(x_val[i], x_tkn)
+        sum_orig = (abs.seq2text(y_val[i], y_tkn).replace("<start>", "")
+                                                 .replace("<end>", "")
+                                                 .strip())
+        sum_pred = decode_validation_seq(x_val[i])
+        scores = evaluation.get_rogue_f1_score(sum_pred, sum_orig)
+        rouge1.append(scores["rouge-1"])
+        rouge2.append(scores["rouge-2"])
+        rougeL.append(scores["rouge-l"])
+        if depug_output:
+            print("\nReview #%s: "%i)
+            print("rouge-1 : %.7f" % scores["rouge-1"])
+            print("rouge-2 : %.7f" % scores["rouge-2"])
+            print("rouge-l : %.7f" % scores["rouge-l"])
+
+    return mean(rouge1), mean(rouge2), mean(rougeL)
+
+
 if __name__ == "__main__":
-    # model_dir = "../data/_models"
-    # model_name = f"nodetails--food_reviews--80-10--None"
-    # absmodel = abs.load_model(f"{model_dir}/{model_name}.model", verbose=True)
+    dataset_name = "wikihow"
+    x_len = 120
+    y_len = 15
+    column_names = {"text": "text", "title": "sum"}
 
-    # text = ("My main use for almond, soy, or rice milk is to use in coffee "
-    #         "or tea.  The best so far is Silk soymilk original but this Silk "
-    #         "almond milk is very nearly as good.  Actually as far as taste goes "
-    #         "I'd say the almond milk might be best but for using in coffee the "
-    #         "soy edges out the almond for creaminess. I totally enjoy them "
-    #         "both and have been buying the almond milk from Amazon at a very "
-    #         "fair price.  But now it's off the Subscribe and Save program "
-    #         "so the cost will go up. I intend to continue buying either "
-    #         "Silk almond or Silk soy milk because they are the best for me.")
+    dataset = util.cached_read_dataset_csv("../data/wikihow_articles/wikihowAll.csv",
+                                           nrows=1000,
+                                           renaming_map=column_names)
+    training_data, lexicon = prep.prepare_training_set(dataset,
+                                                       x_len, y_len,
+                                                       split=.1)
 
-    # sum_pred = abstractive.make_inference(absmodel, text)
+    abs_model = abs.load_model("../data/_models/nodetails--wikihow--120-15--1000.model")
+    scores = score_validation_set(
+        abs_model, training_data.x_val, training_data.y_val, lexicon,
+        item_range=(0,99))
 
-    sum_orig = ("My main use for almond soy, or rice milk is to use in coffee "
-                "or tea.  The best so far is Silk soymilk original but this Silk "
-                "almond milk is very nearly as good."
-                "Silk almond or Silk soy milk because they are the best for me.")
-    sum_pred = ("My main use almond for soy, or rice milk is to use in coffee "
-                "or tea.  The best so far is Silk soymilk original but this Silk "
-                "almond milk is very nearly as good.")
-
-    scores = evaluation.get_rogue_f1_score(sum_pred, sum_orig)
     print(scores)
+    print("Done")
 
 # END OF test_metrics.py

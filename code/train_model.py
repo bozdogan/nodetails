@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--sum-col", default="sum")
 
     args = parser.parse_args()
-    nodetails._DEBUG = args.verbose
+    nodetails.set_debug(args.verbose)
 
     dataset_name = args.name + "--" if args.name else ""
     model_name = f"nodetails--{dataset_name}{args.x_len}-{args.y_len}--{args.nrows}"
