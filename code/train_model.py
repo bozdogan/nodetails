@@ -1,4 +1,5 @@
 import argparse
+import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 from nodetails import enable_vram_growth
 from nodetails import abs, prep, util
 import tensorflow as tf
