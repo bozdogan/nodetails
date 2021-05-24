@@ -61,9 +61,9 @@ def show_word_count_graphs(data: pd.DataFrame, hist_bins=30):
     plt.show()
 
 
-def summary_from_wikipedia(article_url, abs_infr_model: InferenceModel):
+def summary_from_wikipedia(article_url, abs_model: AbstractiveModel):
     extsum = ext.get_summary_from_url(article_url, 10, preset="wikipedia")
-    abstsum = abs.make_inference(abs_infr_model, extsum.summary)
+    abstsum = abs.make_inference(abs_model, extsum.summary)
 
     return abstsum
 

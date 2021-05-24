@@ -47,7 +47,7 @@ def tag_sentences(paragraphs):
 
 
 def calc_frequencies(text, stopwords=None):
-    if stopwords == None: stopwords = []
+    if stopwords is None: stopwords = []
     assert isinstance(text, str)
 
     # NOTE(bora): Remove non-alphabetic characters. Languages other than

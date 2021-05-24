@@ -15,7 +15,7 @@ from nodetails import is_debug
 from nodetails.nn.attention import Attention
 
 
-def create_models(lexicon: Lexicon, latent_dim=500) -> (TrainingModel, InferenceModel):
+def create_models(lexicon: Lexicon, latent_dim=500) -> AbstractiveModel:
     x_tkn, y_tkn, x_len, y_len = lexicon
 
     encoder_vocab = len(x_tkn.word_index) + 1
@@ -73,14 +73,14 @@ def create_models(lexicon: Lexicon, latent_dim=500) -> (TrainingModel, Inference
                                inputs=[decoder_input] + [infr_prev_hidden, infr_prev_h, infr_prev_c],
                                outputs=[infr_output] + [infr_state_h, infr_state_c])
 
-    return (TrainingModel(training_model, latent_dim),
-            InferenceModel(infr_encoder_model, infr_decoder_model, lexicon))
+    return AbstractiveModel(training_model,
+                            infr_encoder_model, infr_decoder_model, lexicon)
 
 
-def train_model(training_model: TrainingModel, training_set: TrainingSet,
+def train_model(abs_model: AbstractiveModel, training_set: TrainingSet,
                 batch_size=64, show_graph=False):
     x_train, y_train, x_val, y_val, = training_set
-    model = training_model.model
+    model = abs_model.training
 
     model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy")
     early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=is_debug())
@@ -101,8 +101,8 @@ def train_model(training_model: TrainingModel, training_set: TrainingSet,
     return model
 
 
-def save_model(infr_model: InferenceModel, save_location):
-    encoder_model, decoder_model, lexicon = infr_model
+def save_model(abs_model: AbstractiveModel, save_location):
+    _, encoder_model, decoder_model, lexicon = abs_model
     if is_debug():
         print(f"Saving model at {save_location}")
 
@@ -119,7 +119,7 @@ def save_model(infr_model: InferenceModel, save_location):
         print(f"Model saved")
 
 
-def load_model(save_location) -> InferenceModel:
+def load_model(save_location) -> AbstractiveModel:
     if is_debug():
         print(f"Loading model from {save_location}")
 
@@ -137,11 +137,11 @@ def load_model(save_location) -> InferenceModel:
     if is_debug():
         print(f"Model loaded")
 
-    return InferenceModel(encoder_model, decoder_model, lexicon)
+    return AbstractiveModel(None, encoder_model, decoder_model, lexicon)
 
 
-def decode_sequence(input_seq, infr_model: InferenceModel):
-    encoder_model, decoder_model, (_, y_tkn, _, y_len) = infr_model
+def decode_sequence(input_seq, abs_model: AbstractiveModel):
+    _, encoder_model, decoder_model, (_, y_tkn, _, y_len) = abs_model
 
     encoder_output, state_h, state_c = encoder_model.predict(input_seq)
     encoder_state = [state_h, state_c]
@@ -179,11 +179,11 @@ def seq2text(input_seq, tkn: keras.preprocessing.text.Tokenizer):
     return " ".join(result)
 
 
-def test_validation_set(infr_model: InferenceModel, x_val, y_val, lexicon, item_range=(0, 1)):
+def test_validation_set(abs_model: AbstractiveModel, x_val, y_val, lexicon, item_range=(0, 1)):
     x_tkn, y_tkn, x_len, y_len = lexicon
 
     def decode_validation_seq(it):
-        result = decode_sequence(it.reshape(1, x_len), infr_model)
+        result = decode_sequence(it.reshape(1, x_len), abs_model)
         assert result, f"Empty result of type {type(result)} at item #{it}"
         return result
 
@@ -198,9 +198,9 @@ def test_validation_set(infr_model: InferenceModel, x_val, y_val, lexicon, item_
         print("Predicted summary:", sum_pred)
 
 
-def make_inference(infr_model: InferenceModel, query: str):
-    (encoder_model, decoder_model,
-     (x_tkn, y_tkn, x_len, y_len)) = infr_model
+def make_inference(abs_model: AbstractiveModel, query: str):
+    (_, encoder_model, decoder_model,
+     (x_tkn, y_tkn, x_len, y_len)) = abs_model
 
     def convert_to_sequences(words):
         result = []
@@ -218,7 +218,7 @@ def make_inference(infr_model: InferenceModel, query: str):
     query_cleaned = nodetails.prep.clean_text(query)
 
     query_seq = convert_to_sequences(query_cleaned.split())
-    prediction = decode_sequence(query_seq.reshape(1, x_len), infr_model)
+    prediction = decode_sequence(query_seq.reshape(1, x_len), abs_model)
     if is_debug():
         print("\n == INFERENCE ==\n")
 

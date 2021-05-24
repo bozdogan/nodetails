@@ -6,6 +6,6 @@ nltk
 numpy==1.19.5
 pandas
 scikit-learn
-#tensorboard==2.4.1
+tensorboard==2.4.1
 tensorflow==2.4.1
-#tensorflow-gpu==2.4.1
+tensorflow-gpu==2.4.1

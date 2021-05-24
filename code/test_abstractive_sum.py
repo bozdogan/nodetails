@@ -27,24 +27,24 @@ if __name__ == "__main__":
         dataset, x_len=max_len_text, y_len=max_len_sum, split=.1)
 
     # NOTE(bora): Deep learning part
-    training_model, infr_model = abs.create_models(lexicon, latent_dim=500)
+    abs_model = abs.create_models(lexicon, latent_dim=500)
 
-    training_model.model.summary()
-    #infr_model.encoder.summary()
-    #infr_model.decoder.summary()
+    abs_model.training.summary()
+    #abs_model.encoder.summary()
+    #abs_model.decoder.summary()
 
     if 0:
-        abs.train_model(training_model, training_data,
+        abs.train_model(abs_model, training_data,
                         batch_size=128,
                         show_graph=True)
 
         # NOTE(bora): Save the model to disk
-        abs.save_model(infr_model, f"{model_save_dir}/{model_name}.model")
+        abs.save_model(abs_model, f"{model_save_dir}/{model_name}.model")
     # NOTE(bora): Load the model from disk
-    infr_model_reloaded = abs.load_model(f"{model_save_dir}/{model_name}.model")
+    abs_model_reloaded = abs.load_model(f"{model_save_dir}/{model_name}.model")
 
     abs.test_validation_set(
-        infr_model_reloaded,
+        abs_model_reloaded,
         training_data.x_val, training_data.y_val,
         lexicon, item_range=(0, 10))
 

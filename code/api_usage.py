@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # For training the model, see test_abstractive_sum.py
     model_dir = "../data/_models"
     model_name = f"nodetails--food_reviews--80-10--None.model"
-    infr_params = nodetails.abs.load_model(osp.join(model_dir, model_name), verbose=True)
+    infr_params = nodetails.abs.load_model(osp.join(model_dir, model_name))
 
     text = ("My main use for almond, soy, or rice milk is to use in coffee "
             "or tea.  The best so far is Silk soymilk original but this Silk "

@@ -1,12 +1,13 @@
 .idea/
-venv/
+/venv/
 .ipynb_checkpoints/
 
-__pycache__
+__pycache__/
 *.pyc
 *.pyo
 
 
 
-data/
+/data/
 *.model/
+exclude/
