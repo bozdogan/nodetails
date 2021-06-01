@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <title>Document</title>
+{% endblock %}
+
+{% block body %}
+  <h1>smrzr</h1> 
+  <p>It summarizes!</p>
+
+  <form action="/" method="POST">
+    <textarea name="content">Your text here</textarea>
+    <input type="submit" value="Summarize">
+  </form>
+
+  <pre id="text_echo">{{ text }}</pre>
+  <p><strong>Summary:</strong> <span id="summary">{{ summary }}</span></p>
+{% endblock %}

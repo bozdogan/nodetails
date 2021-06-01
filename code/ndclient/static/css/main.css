@@ -1,0 +1,8 @@
+body {
+  font-family: sans-serif;
+}
+
+pre {
+  word-wrap: break-word;
+  max-width: 800px;
+}
