@@ -1,4 +1,5 @@
 beautifulsoup4
+flask
 Keras==2.4.3
 lxml
 matplotlib
