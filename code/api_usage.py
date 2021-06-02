@@ -7,10 +7,12 @@ if __name__ == "__main__":
     # tensorflow.python.framework.errors_impl.InternalError:  Blas GEMM launch failed : a.shape=(80, 500), b.shape=(500, 500), m=80, n=500, k=500
     # 	 [[{{node model_2/attention/while/body/_1/model_2/attention/while/MatMul}}]] [Op:__inference_predict_function_4374]
 
+    import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+    # NOTE(bora): This is to suppress tensorflow info messages
+
 import os.path as osp
 import nodetails.abs
 import nodetails.ext
-
 
 if __name__ == "__main__":
     #
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     # For training the model, see test_abstractive_sum.py
     model_dir = "../data/_models"
     model_name = f"nodetails--food_reviews--80-10--None.model"
-    infr_params = nodetails.abs.load_model(osp.join(model_dir, model_name), verbose=True)
+    infr_params = nodetails.abs.load_model(osp.join(model_dir, model_name))
 
     text = ("My main use for almond, soy, or rice milk is to use in coffee "
             "or tea.  The best so far is Silk soymilk original but this Silk "
@@ -62,7 +64,7 @@ if __name__ == "__main__":
     extsum = nodetails.ext.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed").summary
     integrated_example = nodetails.abs.make_inference(infr_params, extsum)
 
-    print(integrated_example)
     print(extsum)
+    print(integrated_example)
 
 # END OF api_usage.py

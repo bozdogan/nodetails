@@ -2,14 +2,14 @@ import os.path as osp
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from nodetails import abs, ext
-from nodetails import InferenceModel
-from nodetails.prep import clean_dataset
+from nodetails.types import *
+from nodetails import is_debug
+from nodetails import abs, ext, prep
 
 
 def cached(fn):
     def cached_wrapper(datafile, renaming_map=None, nrows=None,
-                       cache_dir=None, verbose=False):
+                       cache_dir=None):
         if renaming_map is None:
             renaming_map = {"Text": "text", "Summary": "sum"}
         if cache_dir is None:
@@ -18,18 +18,18 @@ def cached(fn):
         cache_filename = osp.join(cache_dir, f"{osp.basename(datafile)}-cache-{nrows}.gz")
 
         if osp.exists(cache_filename):
-            if verbose:
+            if is_debug():
                 print("Cached data found")
                 print("Loading preprocessed file")
             data = pd.read_pickle(cache_filename)
         else:
             data = fn(datafile, renaming_map=renaming_map, nrows=nrows)
 
-            if verbose:
+            if is_debug():
                 print("Saving preprocessed data to cache file")
             data.to_pickle(cache_filename)
 
-        if verbose:
+        if is_debug():
             print("\nCounting words")
 
         return data
@@ -43,7 +43,7 @@ def read_dataset_csv(input_file, renaming_map: dict, nrows=None):
               .drop_duplicates(subset=["text"])
               .dropna())
 
-    data = clean_dataset(data, keep_original=True)
+    data = prep.clean_dataset(data, keep_original=True)
     return data
 
 
@@ -61,9 +61,9 @@ def show_word_count_graphs(data: pd.DataFrame, hist_bins=30):
     plt.show()
 
 
-def summary_from_wikipedia(article_url, abs_infr_model: InferenceModel):
+def summary_from_wikipedia(article_url, abs_model: AbstractiveModel):
     extsum = ext.get_summary_from_url(article_url, 10, preset="wikipedia")
-    abstsum = abs.make_inference(abs_infr_model, extsum.summary, debug_output=True)
+    abstsum = abs.make_inference(abs_model, extsum.summary)
 
     return abstsum
 

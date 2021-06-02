@@ -6,11 +6,8 @@ TrainingSet = namedtuple("TrainingSet", [
 Lexicon = namedtuple("Lexicon", [
     "x_tkn", "y_tkn", "x_len", "y_len"])
 
-TrainingModel = namedtuple("TrainingModel", [
-    "model", "latent_dim"])
-
-InferenceModel = namedtuple("InferenceModel", [
-    "encoder", "decoder", "lexicon"])
+AbstractiveModel = namedtuple("AbstractiveModel", [
+    "training", "encoder", "decoder", "lexicon"])
 
 ExtractiveSummary = namedtuple("ExtractiveSummary", [
     "summary", "reference", "sentences", "paragraphs"])

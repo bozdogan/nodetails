@@ -5,21 +5,24 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
+import tensorflow.keras.backend as K
 
 import nodetails.nn
 import nodetails.prep
 import nodetails.util
 
 from nodetails.types import *
+from nodetails import is_debug
 from nodetails.nn.attention import Attention
 
 
-def create_models(lexicon: Lexicon, latent_dim=500):
+def create_models(lexicon: Lexicon, latent_dim=500) -> AbstractiveModel:
     x_tkn, y_tkn, x_len, y_len = lexicon
 
     encoder_vocab = len(x_tkn.word_index) + 1
     decoder_vocab = len(y_tkn.word_index) + 1
-
+    
+    K.clear_session()
     encoder_input = layers.Input(shape=(x_len,))
     embedded1 = layers.Embedding(encoder_vocab, latent_dim, trainable=True, input_shape=(x_len,))(encoder_input)
 
@@ -72,21 +75,21 @@ def create_models(lexicon: Lexicon, latent_dim=500):
                                inputs=[decoder_input] + [infr_prev_hidden, infr_prev_h, infr_prev_c],
                                outputs=[infr_output] + [infr_state_h, infr_state_c])
 
-    return (TrainingModel(training_model, latent_dim),
-            InferenceModel(infr_encoder_model, infr_decoder_model, lexicon))
+    return AbstractiveModel(training_model,
+                            infr_encoder_model, infr_decoder_model, lexicon)
 
 
-def train_model(training_model: TrainingModel, training_set: TrainingSet,
+def train_model(abs_model: AbstractiveModel, training_set: TrainingSet,
                 batch_size=64, show_graph=False):
     x_train, y_train, x_val, y_val, = training_set
-    model = training_model.model
+    model = abs_model.training
 
     model.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy")
-    es = EarlyStopping(monitor="val_loss", mode="min", verbose=1)
+    early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=is_debug())
 
     history = model.fit([x_train, y_train[:, :-1]],
                         y_train.reshape(y_train.shape[0], y_train.shape[1], 1)[:, 1:],
-                        epochs=50, callbacks=[es], batch_size=batch_size,
+                        epochs=50, callbacks=[early_stopping], batch_size=batch_size,
                         validation_data=([x_val, y_val[:, :-1]],
                                          y_val.reshape(y_val.shape[0], y_val.shape[1], 1)[:, 1:]))
 
@@ -100,26 +103,26 @@ def train_model(training_model: TrainingModel, training_set: TrainingSet,
     return model
 
 
-def save_model(infr_model: InferenceModel, save_location, verbose=True):
-    encoder_model, decoder_model, lexicon = infr_model
-    if verbose:
+def save_model(abs_model: AbstractiveModel, save_location):
+    _, encoder_model, decoder_model, lexicon = abs_model
+    if is_debug():
         print(f"Saving model at {save_location}")
 
     encoder_model.save(f"{save_location}/encoder.h5")
     decoder_model.save(f"{save_location}/decoder.h5")
-    if verbose:
+    if is_debug():
         print(f"Encoder and decoder is saved.")
 
     params = lexicon
 
     with open(f"{save_location}/parameters.pkl", "wb") as fp:
         pickle.dump(params, fp)
-    if verbose:
+    if is_debug():
         print(f"Model saved")
 
 
-def load_model(save_location, verbose=True) -> InferenceModel:
-    if verbose:
+def load_model(save_location) -> AbstractiveModel:
+    if is_debug():
         print(f"Loading model from {save_location}")
 
     encoder_model = keras_load_model(f"{save_location}/encoder.h5",
@@ -128,19 +131,19 @@ def load_model(save_location, verbose=True) -> InferenceModel:
     decoder_model = keras_load_model(f"{save_location}/decoder.h5",
                                      custom_objects={"Attention": Attention},
                                      compile=False)
-    if verbose:
+    if is_debug():
         print(f"Encoder and decoder is loaded.")
 
     with open(f"{save_location}/parameters.pkl", "rb") as fp:
         lexicon = pickle.load(fp)
-    if verbose:
+    if is_debug():
         print(f"Model loaded")
 
-    return InferenceModel(encoder_model, decoder_model, lexicon)
+    return AbstractiveModel(None, encoder_model, decoder_model, lexicon)
 
 
-def decode_sequence(input_seq, infr_model: InferenceModel):
-    encoder_model, decoder_model, (_, y_tkn, _, y_len) = infr_model
+def decode_sequence(input_seq, abs_model: AbstractiveModel):
+    _, encoder_model, decoder_model, (_, y_tkn, _, y_len) = abs_model
 
     encoder_output, state_h, state_c = encoder_model.predict(input_seq)
     encoder_state = [state_h, state_c]
@@ -178,11 +181,11 @@ def seq2text(input_seq, tkn: keras.preprocessing.text.Tokenizer):
     return " ".join(result)
 
 
-def test_validation_set(infr_model: InferenceModel, x_val, y_val, lexicon, item_range=(0, 1)):
+def test_validation_set(abs_model: AbstractiveModel, x_val, y_val, lexicon, item_range=(0, 1)):
     x_tkn, y_tkn, x_len, y_len = lexicon
 
     def decode_validation_seq(it):
-        result = decode_sequence(it.reshape(1, x_len), infr_model)
+        result = decode_sequence(it.reshape(1, x_len), abs_model)
         assert result, f"Empty result of type {type(result)} at item #{it}"
         return result
 
@@ -197,9 +200,9 @@ def test_validation_set(infr_model: InferenceModel, x_val, y_val, lexicon, item_
         print("Predicted summary:", sum_pred)
 
 
-def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
-    (encoder_model, decoder_model,
-     (x_tkn, y_tkn, x_len, y_len)) = infr_model
+def make_inference(abs_model: AbstractiveModel, query: str):
+    (_, encoder_model, decoder_model,
+     (x_tkn, y_tkn, x_len, y_len)) = abs_model
 
     def convert_to_sequences(words):
         result = []
@@ -207,7 +210,7 @@ def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
             it = it.strip()
             if it in x_tkn.word_index:
                 result.append(x_tkn.word_index[it])
-            elif debug_output:
+            elif is_debug():
                 print("Token doesn't exist on lexicon: %s"%it)
 
         return nodetails.prep.pad_sequences([result],
@@ -217,8 +220,8 @@ def make_inference(infr_model: InferenceModel, query: str, debug_output=False):
     query_cleaned = nodetails.prep.clean_text(query)
 
     query_seq = convert_to_sequences(query_cleaned.split())
-    prediction = decode_sequence(query_seq.reshape(1, x_len), infr_model)
-    if debug_output:
+    prediction = decode_sequence(query_seq.reshape(1, x_len), abs_model)
+    if is_debug():
         print("\n == INFERENCE ==\n")
 
         print("  Query:", query)

@@ -1,10 +1,10 @@
 import argparse
 import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import enable_vram_growth
+
+import nodetails
 from nodetails import abs, prep, util
-import tensorflow as tf
-enable_vram_growth()
-tf.keras.backend.clear_session()
+ 
+nodetails.enable_vram_growth()
 
 
 if __name__ == "__main__":
@@ -22,27 +22,33 @@ if __name__ == "__main__":
     parser.add_argument("--sum-col", default="sum")
 
     args = parser.parse_args()
+    nodetails.set_debug(args.verbose)
 
     dataset_name = args.name + "--" if args.name else ""
     model_name = f"nodetails--{dataset_name}{args.x_len}-{args.y_len}--{args.nrows}"
 
     dataset = util.cached_read_dataset_csv(
         args.input_file, nrows=args.nrows,
-        renaming_map={args.text_col: "text", args.sum_col: "sum"},
-        verbose=args.verbose)
+        renaming_map={args.text_col: "text", args.sum_col: "sum"})
     training_data, lexicon = prep.prepare_training_set(
         dataset, x_len=args.x_len, y_len=args.y_len, split=.1)
 
     print("Creating models")
     training_model, infr_model = abs.create_models(lexicon, latent_dim=500)
 
+    if args.verbose:
+        training_model.model.summary()
+        print("\n"*3)
+        infr_model.encoder.summary()
+        print("\n"*3)
+        infr_model.decoder.summary()
+
     print("Training model")
     abs.train_model(training_model, training_data,
                     batch_size=args.batch_size, show_graph=args.show_graph)
     print("Training done")
 
-    abs.save_model(infr_model, f"{args.save_dir}/{model_name}.model",
-                   verbose=args.verbose)
+    abs.save_model(infr_model, f"{args.save_dir}/{model_name}.model")
 
     print("Done")
 
