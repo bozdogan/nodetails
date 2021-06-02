@@ -9,7 +9,7 @@ nodetails.enable_vram_growth()
 if __name__ == "__main__":
     DATA_DIR = "../data"
     model_save_dir = f"{DATA_DIR}/_models"
-
+    
     input_file = f"{DATA_DIR}/wikihow_articles/wikihowAll.csv"
     input_size = 1000  # NOTE(bora): `None` to import the entire dataset
     
