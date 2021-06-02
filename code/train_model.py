@@ -3,8 +3,7 @@ import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 
 import nodetails
 from nodetails import abs, prep, util
-
-import tensorflow.keras.backend as K; K.clear_session()
+ 
 nodetails.enable_vram_growth()
 
 

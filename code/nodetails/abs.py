@@ -5,6 +5,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
+import tensorflow.keras.backend as K
 
 import nodetails.nn
 import nodetails.prep
@@ -20,7 +21,8 @@ def create_models(lexicon: Lexicon, latent_dim=500) -> AbstractiveModel:
 
     encoder_vocab = len(x_tkn.word_index) + 1
     decoder_vocab = len(y_tkn.word_index) + 1
-
+    
+    K.clear_session()
     encoder_input = layers.Input(shape=(x_len,))
     embedded1 = layers.Embedding(encoder_vocab, latent_dim, trainable=True, input_shape=(x_len,))(encoder_input)
 
