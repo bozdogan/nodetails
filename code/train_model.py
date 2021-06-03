@@ -1,13 +1,12 @@
 import argparse
-import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 
 import nodetails
 from nodetails import abs, prep, util
- 
-nodetails.enable_vram_growth()
 
 
 if __name__ == "__main__":
+    nodetails.enable_vram_growth()
+    
     parser = argparse.ArgumentParser(description="Program description")
     parser.add_argument("input_file", help="INPUT FILE CSV")
     parser.add_argument("x_len", help="MAX LEN TEXT", type=int)
@@ -34,21 +33,21 @@ if __name__ == "__main__":
         dataset, x_len=args.x_len, y_len=args.y_len, split=.1)
 
     print("Creating models")
-    training_model, infr_model = abs.create_models(lexicon, latent_dim=500)
+    absmodel = abs.create_models(lexicon, latent_dim=500)
 
     if args.verbose:
-        training_model.model.summary()
+        absmodel.training.summary()
         print("\n"*3)
-        infr_model.encoder.summary()
+        absmodel.encoder.summary()
         print("\n"*3)
-        infr_model.decoder.summary()
+        absmodel.decoder.summary()
 
     print("Training model")
-    abs.train_model(training_model, training_data,
+    abs.train_model(absmodel, training_data,
                     batch_size=args.batch_size, show_graph=args.show_graph)
     print("Training done")
 
-    abs.save_model(infr_model, f"{args.save_dir}/{model_name}.model")
+    abs.save_model(absmodel, f"{args.save_dir}/{model_name}.model")
 
     print("Done")
 
