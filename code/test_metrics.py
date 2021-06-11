@@ -1,5 +1,5 @@
 import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-from nodetails import abs, util, prep
+from nodetails import ndabs, util, prep
 from nodetails import evaluation
 
 import nodetails
@@ -16,7 +16,7 @@ def score_validation_set(abs_model, x_val, y_val, lexicon,
     x_tkn, y_tkn, x_len, y_len = lexicon
 
     def decode_validation_seq(it):
-        result = abs.decode_sequence(it.reshape(1, x_len), abs_model)
+        result = ndabs.decode_sequence(it.reshape(1, x_len), abs_model)
         assert result, f"Empty result of type {type(result)} at item #{it}"
         return result
 
@@ -24,10 +24,10 @@ def score_validation_set(abs_model, x_val, y_val, lexicon,
     rouge2 = []
     rougeL = []
     for i in range(*item_range):
-        review = abs.seq2text(x_val[i], x_tkn)
-        sum_orig = (abs.seq2text(y_val[i], y_tkn).replace("<start>", "")
-                                                 .replace("<end>", "")
-                                                 .strip())
+        review = ndabs.seq2text(x_val[i], x_tkn)
+        sum_orig = (ndabs.seq2text(y_val[i], y_tkn).replace("<start>", "")
+                    .replace("<end>", "")
+                    .strip())
         sum_pred = decode_validation_seq(x_val[i])
         scores = evaluation.get_rogue_f1_score(sum_pred, sum_orig)
         rouge1.append(scores["rouge-1"])
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                                                        x_len, y_len,
                                                        split=.1)
 
-    abs_model = abs.load_model("../data/_models/nodetails--wikihow--120-15--1000.model")
+    abs_model = ndabs.load_model("../data/_models/nodetails--wikihow--120-15--1000.model")
     scores = score_validation_set(
         abs_model, training_data.x_val, training_data.y_val, lexicon,
         item_range=(0,99))

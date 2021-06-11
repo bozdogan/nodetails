@@ -133,4 +133,4 @@ def get_summary(article, length=7, preset="wikipedia"):
 
     return ExtractiveSummary(summary, reference, sentences, paragraphs)
 
-# END OF ext.py
+# END OF ndext.py

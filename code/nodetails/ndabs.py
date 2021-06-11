@@ -230,4 +230,4 @@ def make_inference(abs_model: AbstractiveModel, query: str):
 
     return prediction
 
-# END OF abs.py
+# END OF ndabs.py

@@ -1,7 +1,7 @@
 import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 
 import nodetails
-from nodetails import abs, prep, util
+from nodetails import ndabs, prep, util
 
 nodetails.enable_vram_growth()
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
                                                        split=.1)
 
     # NOTE(bora): Deep learning part
-    abs_model = abs.create_models(lexicon, latent_dim=500)
+    abs_model = ndabs.create_models(lexicon, latent_dim=500)
 
     if nodetails.is_debug():
         abs_model.training.summary()
@@ -37,14 +37,14 @@ if __name__ == "__main__":
         abs_model.decoder.summary()
 
     if 1:
-        abs.train_model(abs_model, training_data,
-                        batch_size=128,
-                        show_graph=nodetails.is_debug())
-        abs.save_model(abs_model, f"{model_save_dir}/{model_name}.model")
+        ndabs.train_model(abs_model, training_data,
+                          batch_size=128,
+                          show_graph=nodetails.is_debug())
+        ndabs.save_model(abs_model, f"{model_save_dir}/{model_name}.model")
 
-    abs_model_reloaded = abs.load_model(f"{model_save_dir}/{model_name}.model")
+    abs_model_reloaded = ndabs.load_model(f"{model_save_dir}/{model_name}.model")
 
-    abs.test_validation_set(
+    ndabs.test_validation_set(
         abs_model_reloaded,
         training_data.x_val, training_data.y_val,
         lexicon, item_range=(0, 10))

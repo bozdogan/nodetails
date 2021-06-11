@@ -1,7 +1,7 @@
 import argparse
 
 import nodetails
-from nodetails import abs, prep, util
+from nodetails import ndabs, prep, util
 
 
 if __name__ == "__main__":
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         dataset, x_len=args.x_len, y_len=args.y_len, split=.1)
 
     print("Creating models")
-    absmodel = abs.create_models(lexicon, latent_dim=500)
+    absmodel = ndabs.create_models(lexicon, latent_dim=500)
 
     if args.verbose:
         absmodel.training.summary()
@@ -43,11 +43,11 @@ if __name__ == "__main__":
         absmodel.decoder.summary()
 
     print("Training model")
-    abs.train_model(absmodel, training_data,
-                    batch_size=args.batch_size, show_graph=args.show_graph)
+    ndabs.train_model(absmodel, training_data,
+                      batch_size=args.batch_size, show_graph=args.show_graph)
     print("Training done")
 
-    abs.save_model(absmodel, f"{args.save_dir}/{model_name}.model")
+    ndabs.save_model(absmodel, f"{args.save_dir}/{model_name}.model")
 
     print("Done")
 

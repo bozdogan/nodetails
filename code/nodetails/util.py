@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from nodetails.types import *
 from nodetails import is_debug
-from nodetails import abs, ext, prep
+from nodetails import ndabs, ndext, prep
 
 
 def cached(fn):
@@ -62,8 +62,8 @@ def show_word_count_graphs(data: pd.DataFrame, hist_bins=30):
 
 
 def summary_from_wikipedia(article_url, abs_model: AbstractiveModel):
-    extsum = ext.get_summary_from_url(article_url, 10, preset="wikipedia")
-    abstsum = abs.make_inference(abs_model, extsum.summary)
+    extsum = ndext.get_summary_from_url(article_url, 10, preset="wikipedia")
+    abstsum = ndabs.make_inference(abs_model, extsum.summary)
 
     return abstsum
 

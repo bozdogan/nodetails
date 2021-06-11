@@ -11,8 +11,8 @@ if __name__ == "__main__":
     # NOTE(bora): This is to suppress tensorflow info messages
 
 import os.path as osp
-import nodetails.abs
-import nodetails.ext
+import nodetails.ndabs
+import nodetails.ndext
 
 if __name__ == "__main__":
     #
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # Extractive summarization doesn't require training. You can directly use
     # api functions without prior preparation steps.
-    extractive_summary = nodetails.ext.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed")
+    extractive_summary = nodetails.ndext.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed")
     print(extractive_summary.summary)
 
     # Extractive summary is some subset of sentences from the original article.
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # For training the model, see test_abstractive_sum.py
     model_dir = "../data/_models"
     model_name = f"nodetails--food_reviews--80-10--None.model"
-    infr_params = nodetails.abs.load_model(osp.join(model_dir, model_name))
+    infr_params = nodetails.ndabs.load_model(osp.join(model_dir, model_name))
 
     text = ("My main use for almond, soy, or rice milk is to use in coffee "
             "or tea.  The best so far is Silk soymilk original but this Silk "
@@ -53,7 +53,7 @@ if __name__ == "__main__":
             "fair price.  But now it's off the Subscribe and Save program "
             "so the cost will go up. I intend to continue buying either "
             "Silk almond or Silk soy milk because they are the best for me.")
-    abstractive_summary = nodetails.abs.make_inference(infr_params, text)
+    abstractive_summary = nodetails.ndabs.make_inference(infr_params, text)
     print(abstractive_summary)
 
     #
@@ -61,8 +61,8 @@ if __name__ == "__main__":
     # ----------
 
     # We intend to combine these two methods into a more flexible solution:
-    extsum = nodetails.ext.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed").summary
-    integrated_example = nodetails.abs.make_inference(infr_params, extsum)
+    extsum = nodetails.ndext.get_summary_from_url("https://en.wikipedia.org/wiki/Citation_needed").summary
+    integrated_example = nodetails.ndabs.make_inference(infr_params, extsum)
 
     print(extsum)
     print(integrated_example)
