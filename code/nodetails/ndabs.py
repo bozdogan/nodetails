@@ -7,13 +7,11 @@ from tensorflow.keras.models import Model, load_model as keras_load_model
 from tensorflow.keras.callbacks import EarlyStopping
 import tensorflow.keras.backend as K
 
-import nodetails.nn
 import nodetails.prep
 import nodetails.util
-
 from nodetails.types import *
 from nodetails import is_debug
-from nodetails.nn.attention import Attention
+from nodetails.extern.attention import Attention
 
 
 def create_models(lexicon: Lexicon, latent_dim=500) -> AbstractiveModel:

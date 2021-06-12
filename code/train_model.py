@@ -1,11 +1,11 @@
 import argparse
 
-import nodetails
+import nodetails as nd
 from nodetails import ndabs, prep, util
 
 
 if __name__ == "__main__":
-    nodetails.enable_vram_growth()
+    nd.enable_vram_growth()
     
     parser = argparse.ArgumentParser(description="Program description")
     parser.add_argument("input_file", help="INPUT FILE CSV")
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     parser.add_argument("--sum-col", default="sum")
 
     args = parser.parse_args()
-    nodetails.set_debug(args.verbose)
+    nd.set_debug(args.verbose)
 
     dataset_name = args.name + "--" if args.name else ""
     model_name = f"nodetails--{dataset_name}{args.x_len}-{args.y_len}--{args.nrows}"

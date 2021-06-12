@@ -5,8 +5,7 @@ import re
 import nltk
 
 from nodetails.types import *
-from nodetails import is_debug
-from nodetails import stopwords_en
+from nodetails.resources import stopwords_en
 
 
 # TODO(bora): `preset` parameter needs to be some kind of enum.

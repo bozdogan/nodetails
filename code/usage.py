@@ -2,17 +2,18 @@
 This module demonstrates basic usage of NoDetails API.
 """
 if __name__ == "__main__":
-    from nodetails import enable_vram_growth; enable_vram_growth()
     # NOTE(bora): This prevent errors like this:
     # tensorflow.python.framework.errors_impl.InternalError:  Blas GEMM launch failed : a.shape=(80, 500), b.shape=(500, 500), m=80, n=500, k=500
     # 	 [[{{node model_2/attention/while/body/_1/model_2/attention/while/MatMul}}]] [Op:__inference_predict_function_4374]
+    from nodetails import enable_vram_growth; enable_vram_growth()
 
-    import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
     # NOTE(bora): This is to suppress tensorflow info messages
+    import os; os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 
 import os.path as osp
 import nodetails.ndabs
 import nodetails.ndext
+
 
 if __name__ == "__main__":
     #

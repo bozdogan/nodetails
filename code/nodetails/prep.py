@@ -7,9 +7,8 @@ from tensorflow import keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences 
 
 from nodetails.types import *
-from nodetails import is_debug
-from nodetails import (contraction_map_en as contraction_map, 
-                       stopwords_en as stopwords)
+from nodetails.resources import (contraction_map_en as contraction_map,
+                                 stopwords_en as stopwords)
 
 _long_word_threshold = 3
 

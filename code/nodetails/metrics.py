@@ -1,4 +1,4 @@
-from nodetails.metrics.rouge import Rouge
+from nodetails.extern.rouge import Rouge
 
 def get_rogue_f1_score(hypothesis: str, reference: str):
     rouge = Rouge(metrics={"rouge-1", "rouge-2",

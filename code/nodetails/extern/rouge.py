@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import nodetails.metrics.rouge_score as rouge_score
+import nodetails.extern.rouge_score as rouge_score
 import io
 import os
 
