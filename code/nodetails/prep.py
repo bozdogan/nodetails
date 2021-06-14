@@ -6,7 +6,7 @@ import sklearn.model_selection
 from tensorflow import keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences 
 
-from nodetails.types import *
+from nodetails._types import *
 from nodetails.resources import (contraction_map_en as contraction_map,
                                  stopwords_en as stopwords)
 

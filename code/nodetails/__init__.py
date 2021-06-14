@@ -1,4 +1,4 @@
-from nodetails.types import *
+from nodetails._types import *
 
 _DEBUG = False
 """Whether debugging log is printed, default is False"""

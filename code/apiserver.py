@@ -2,6 +2,7 @@ import os.path as osp
 from flask import Flask, request, jsonify
 import nodetails as nd
 from nodetails import ndabs, ndext
+from nodetails import engines
 
 app = Flask(__name__)
 
@@ -9,9 +10,20 @@ abs_model_dir = "../data/_models"
 abs_model_name = None
 abs_model = None
 
+available_configurations = {
+    "abs-food_reviews-engine" : engines.AbstractiveEngine(
+        "nodetails-food", model_dir=abs_model_dir,
+        model_name="nodetails--food_reviews--80-10--None.model"),
+    "ext-engine" : engines.ExtractiveEngine(
+        "nodetails-extractive", length=10, preset="wikipedia"),
+    "integrated-engine" : engines.IntegratedEngine(
+        "nodetails-integraged", model_dir=abs_model_dir,
+        model_name="", length=12, preset="article")
+}
+
 @app.route("/")
 def index():
-    return '{"message": "Use /sum route for summarization."}'
+    return '{"info": "Use /sum route for summarization."}'
 
 
 @app.route("/sum", methods=["POST"])
@@ -50,13 +62,13 @@ def get_summary():
     return jsonify(summary)
 
 
-@app.route("/list_models/<string:type>")
-def list(type):
-    return "None"
+@app.route("/list")
+def list_available_configurations():
+    return jsonify(list(available_configurations))
 
 
 if __name__ == "__main__":
     nd.enable_vram_growth()
-    app.run(debug=nd.is_debug())
+    app.run(port=5000, debug=nd.is_debug())
 
 # END OF apiserver.py

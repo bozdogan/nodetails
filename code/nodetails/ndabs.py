@@ -9,7 +9,7 @@ import tensorflow.keras.backend as K
 
 import nodetails.prep
 import nodetails.util
-from nodetails.types import *
+from nodetails._types import *
 from nodetails import is_debug
 from nodetails.extern.attention import Attention
 

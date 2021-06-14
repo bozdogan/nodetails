@@ -2,7 +2,7 @@ import os.path as osp
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from nodetails.types import *
+from nodetails._types import *
 from nodetails import is_debug
 from nodetails import ndabs, ndext, prep
 

@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import nltk
 
-from nodetails.types import *
+from nodetails._types import *
 from nodetails.resources import stopwords_en
 
 
@@ -26,6 +26,18 @@ def split_paragraphs(html, preset="wikipedia"):
             # doesn't really help with general articles that much, so.
             #para = re.sub(r"\[citation needed\]", " ", para)
 
+            para = re.sub(r"\s+", " ", para)
+
+            paragraphs.append((i, para))
+
+        return paragraphs
+    elif preset == "article":
+        p_tags = article_parsed.find_all("p")
+        
+        paragraphs = []
+        for i, p in enumerate(p_tags):
+            para = p.text
+            para = re.sub(r"\[[0-9]*]", " ", para)
             para = re.sub(r"\s+", " ", para)
 
             paragraphs.append((i, para))
