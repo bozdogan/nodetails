@@ -1,6 +1,6 @@
 import os.path as osp
 from tensorflow.python.keras import backend as K
-from nodetails._types import BaseEngine, ExtractiveSummary, NDSummary
+from nodetails._types import BaseEngine, ExtractiveSummary
 from nodetails import ndabs, ndext
 
 
@@ -34,7 +34,7 @@ class AbstractiveEngine(BaseEngine):
 
     def summarize(self, text_body, **kwargs):
         if self.ready:
-            return ndabs.make_inference(self.model, text_body)
+            return {"summary": ndabs.make_inference(self.model, text_body)}
 
 
 class ExtractiveEngine(BaseEngine):
@@ -60,9 +60,11 @@ class ExtractiveEngine(BaseEngine):
         extsum = ndext.get_summary(text_body, length=length, preset=preset)
 
         if kwargs.get("keep_references", False):
-            return extsum
+            return {"summary": extsum.summary,
+                    "reference": extsum.reference,
+                    "sentences": extsum.sentences}
         else:
-            return extsum.summary
+            return {"summary": extsum.summary}
 
 
 class ExtractiveDLEngine(BaseEngine):
@@ -139,12 +141,16 @@ class IntegratedEngine(BaseEngine):
             #     return it as is
 
             extsum = self.extengine.summarize(text_body, keep_references=True)
-            assert isinstance(extsum, ExtractiveSummary)
+            assert ("summary" in extsum
+                    and "reference" in extsum
+                    and "sentences" in extsum)
 
             abssum = self.absengine.summarize(extsum)
             
-            return NDSummary(abssum, extsum.summary,
-                             extsum.reference, extsum.sentences)
+            return {"summary": abssum,
+                    "extended_summary": extsum["summary"],
+                    "reference": extsum["reference"],
+                    "sentences": extsum["sentences"]}
 
 
 def defined_engines():

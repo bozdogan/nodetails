@@ -14,10 +14,6 @@ AbstractiveModel = namedtuple("AbstractiveModel", [
 ExtractiveSummary = namedtuple("ExtractiveSummary", [
     "summary", "reference", "sentences", "paragraphs"])
 
-NDSummary = namedtuple("NDSummary", [
-    "summary", "extended_summary", "reference", "sentences"])
-
-
 class BaseEngine(ABC):
     def __init__(self, name="Unnamed_NDEngine", config=None):
         self.name = name
@@ -36,9 +32,13 @@ class BaseEngine(ABC):
         self.ready = False
 
     @abstractmethod
-    def summarize(self, text_body, **kwargs):
+    def summarize(self, text_body, **kwargs) -> dict:
+        """
+        This method must return a dict with at least
+        a ``summary`` field.
+        """
         if self.ready:
-            return text_body
+            return {"summary": text_body}
 
     def __del__(self):
         self.unload()

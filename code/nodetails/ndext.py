@@ -142,6 +142,11 @@ def get_summary(article, length=7, preset="wikipedia"):
 
     summary = " ".join([sentences[it] for it in reference])
 
+    # NOTE(bora): Make data JSON-friendly so we can use it on the API
+    reference = ["%s-%s" % it for it in reference]
+    sentences = {"%s-%s" % k: v for k, v in sentences.items()}
+    paragraphs = {k: v for k, v in paragraphs}
+
     return ExtractiveSummary(summary, reference, sentences, paragraphs)
 
 # END OF ndext.py

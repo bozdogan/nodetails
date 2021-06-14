@@ -7,8 +7,6 @@ from nodetails import engines
 app = Flask(__name__)
 
 abs_model_dir = "../data/_models"
-abs_model_name = None
-abs_model = None
 
 available_configurations = {
     "abs-food_reviews-engine" : engines.AbstractiveEngine(
@@ -28,36 +26,19 @@ def index():
 
 @app.route("/sum", methods=["POST"])
 def get_summary():
-    global abs_model
-    global abs_model_name
-
-    sum_method = request.form["method"]
-    model_name = request.form["model_name"]
+    engine_name = request.form["engine"]
     text = request.form["text"]
 
-    summary = {"type": sum_method}
+    summary = {"engine": engine_name}
 
-    if sum_method == "abs":
-        if abs_model is None or abs_model_name != model_name:
-            try:
-                abs_model = ndabs.load_model(osp.join(abs_model_dir, model_name))
-                abs_model_name = model_name
-            except Exception as e:
-                print(e)
-
-        if abs_model:
-            summary["summary"] = ndabs.make_inference(abs_model, text)
-        else:
-            return jsonify({"message": "Error: Model not found"})
-    elif sum_method == "ext":
-        extsum = ndext.get_summary(text, length=7)
-
-        summary["summary"] = extsum.summary
-        # summary["reference"] = extsum.reference
-        # summary["sentences"] = extsum.sentences
-        # summary["paragraphs"] = extsum.paragraphs
+    if engine_name in available_configurations:
+        engine = available_configurations[engine_name]
+        engine.load()
+        summary.update(engine.summarize(text, keep_references=True))
     else:
-        return jsonify({"message": f"Error: No method called '{sum_method}'"})
+        return jsonify(
+            {"error": "Requested engine not found. For a list of "
+                      "available configurations call /list endpoint."})
 
     return jsonify(summary)
 
