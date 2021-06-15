@@ -48,6 +48,12 @@ def list_available_configurations():
     return jsonify(list(available_configurations))
 
 
+@app.after_request
+def add_cors_header(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
 if __name__ == "__main__":
     nd.enable_vram_growth()
     app.run(port=5000, debug=nd.is_debug())
