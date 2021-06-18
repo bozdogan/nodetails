@@ -39,6 +39,7 @@ def cached(fn):
 
 def read_dataset_csv(input_file, renaming_map: dict, nrows=None):
     data = (pd.read_csv(input_file, nrows=nrows)
+              .rename(columns={"text": "text_old"})
               .rename(columns=renaming_map)
               .drop_duplicates(subset=["text"])
               .dropna())
