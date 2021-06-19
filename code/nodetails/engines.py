@@ -133,24 +133,29 @@ class IntegratedEngine(BaseEngine):
 
     def summarize(self, text_body, **kwargs):
         if self.ready:
-            # if text_body is "too long":
-            #     use two methods together
-            # elif text_body is "about one or two paragraphs":
-            #     just use abstractive methods
-            # else: if text_body is "even shorter":
-            #     return it as is
+            text_len = len(text_body.split())
 
-            extsum = self.extengine.summarize(text_body, keep_references=True)
-            assert ("summary" in extsum
-                    and "reference" in extsum
-                    and "sentences" in extsum)
+            if text_len > 150:
+                extsum = self.extengine.summarize(
+                    text_body,
+                    length=self.config["length"],
+                    keep_references=True, )
 
-            abssum = self.absengine.summarize(extsum)
-            
-            return {"summary": abssum,
-                    "extended_summary": extsum["summary"],
-                    "reference": extsum["reference"],
-                    "sentences": extsum["sentences"]}
+                assert ("summary" in extsum
+                        and "reference" in extsum
+                        and "sentences" in extsum)
+
+                abssum = self.absengine.summarize(extsum)
+                
+                return {"summary": abssum,
+                        "extended_summary": extsum["summary"],
+                        "reference": extsum["reference"],
+                        "sentences": extsum["sentences"]}
+            elif text_len > 25:
+                abssum = self.absengine.summarize(extsum)
+                return {"summary": abssum}
+            else:
+                return {"summary": text_body}
 
 
 def defined_engines():
