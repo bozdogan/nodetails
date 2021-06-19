@@ -1,6 +1,6 @@
 import os.path as osp
 from tensorflow.python.keras import backend as K
-from nodetails._types import BaseEngine, ExtractiveSummary
+from nodetails._types import BaseEngine
 from nodetails import ndabs, ndext
 
 
@@ -148,15 +148,15 @@ class IntegratedEngine(BaseEngine):
                         and "reference" in extsum
                         and "sentences" in extsum)
 
-                abssum = self.absengine.summarize(extsum)
+                abssum = self.absengine.summarize(extsum["summary"])
                 
-                return {"summary": abssum,
+                return {"summary": abssum["summary"],
                         "extended_summary": extsum["summary"],
                         "reference": extsum["reference"],
                         "sentences": extsum["sentences"]}
             elif text_len > 25:
-                abssum = self.absengine.summarize(extsum)
-                return {"summary": abssum}
+                abssum = self.absengine.summarize(text_body)
+                return {"summary": abssum["summary"]}
             else:
                 return {"summary": text_body}
 

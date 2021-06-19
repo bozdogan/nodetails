@@ -1,8 +1,6 @@
 import sys
-import os.path as osp
 from flask import Flask, request, jsonify
 import nodetails as nd
-from nodetails import ndabs, ndext
 from nodetails import engines
 
 app = Flask(__name__)
@@ -23,7 +21,7 @@ available_configurations = {
         "nodetails-extractive", length=10, preset="wikipedia"),
     "integrated-engine": engines.IntegratedEngine(
         "nodetails-integraged", model_dir=abs_model_dir,
-        model_name="nodetails--wikihow--120-20--None.model", length=12, preset="article")
+        model_name="nodetails--wikihow--120-20--None.model", length=10, preset="article")
 }
 
 @app.route("/")
