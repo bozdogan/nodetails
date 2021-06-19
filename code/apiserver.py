@@ -1,3 +1,4 @@
+import sys
 import os.path as osp
 from flask import Flask, request, jsonify
 import nodetails as nd
@@ -61,7 +62,12 @@ def add_cors_header(response):
 
 
 if __name__ == "__main__":
+    host = None
+    if len(sys.argv) > 1:
+        if sys.argv[1].startswith("host="):
+            host = sys.argv[1][len("host="):]
+    
     nd.enable_vram_growth()
-    app.run(port=5000, debug=nd.is_debug())
+    app.run(port=5000, debug=nd.is_debug(), host=host)
 
 # END OF apiserver.py
