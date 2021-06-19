@@ -10,15 +10,15 @@ app = Flask(__name__)
 abs_model_dir = "../data/_models"
 
 available_configurations = {
-    "abs-food_reviews-engine": engines.AbstractiveEngine(
-        "nodetails-food", model_dir=abs_model_dir,
-        model_name="nodetails--food_reviews--80-10--None.model"),
+    # "abs-food_reviews-engine": engines.AbstractiveEngine(
+    #     "nodetails-food", model_dir=abs_model_dir,
+    #     model_name="nodetails--food_reviews--80-10--None.model"),
     # "abs-news_summary-engine": engines.AbstractiveEngine(
     #     "nodetails-news1", model_dir=abs_model_dir,
     #     model_name="nodetails--news_summary--150-20--None.model"),
-    # "abs-wikihow-engine": engines.AbstractiveEngine(
-    #     "nodetails-how", model_dir=abs_model_dir,
-    #     model_name="nodetails--wikihow--120-20--None.model"),
+    "abs-wikihow-engine": engines.AbstractiveEngine(
+        "nodetails-how", model_dir=abs_model_dir,
+        model_name="nodetails--wikihow--120-20--None.model"),
     "ext-engine": engines.ExtractiveEngine(
         "nodetails-extractive", length=10, preset="wikipedia"),
     "integrated-engine": engines.IntegratedEngine(
