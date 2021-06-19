@@ -120,7 +120,10 @@ class IntegratedEngine(BaseEngine):
 
     def __init__(self, name, **config):
         super().__init__(name, config)
-        self.absengine = AbstractiveEngine(name + "--abs")
+        self.absengine = AbstractiveEngine(
+            name + "--abs",
+            model_dir=config["model_dir"],
+            model_name=config["model_name"])
         self.extengine = ExtractiveEngine(name + "--ext")
 
     def load(self):
