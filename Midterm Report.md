@@ -58,26 +58,26 @@ We use this algorithm for longer texts to extract the important parts first. Tha
 
 Note that preprocessing is applied to input texts.
 
-``
+```
 Review #38: parent rules stepchildren stepparent extra well cash they personal bank tension relationship trying make withdrawal expect stepparent allow simply biological parent upset stepparent step siblings okay excuse outright rude remember struggle still deserve treated basic human respect seem like best form bonds trying hard time this necessarily true biological parent something exclude stepfamily every single event good time biological family expect stepparent different behaviors reactions reactions biological parent know stepmom might cool something biological allows make assumptions stepparent behave react
 Original summary: how to deal with step parents and step siblings
 Predicted summary: how to deal with your parents shouting at you
-``
+```
 
-``
+```
 Review #59: home please avoid damage thing person better ball control ball control essential dribbling agility shuttle runs weekly basis time every time make effort beat timing every attempt also could learn dribbling moves viewing tutorial videos youtube need able cross pass shoot feet many world greatest wingers footed dangerous able shoot drift wide cross work using weak foot control pass shoot ball feel awkward first eventually used feel natural space frequently place regularly right moments wing position cross dribble shoot pass
 Original summary: how to be good player in soccer
 Predicted summary: how to do the maradona
-``
+```
 
-``
+```
 Review #277: copy considered plagiarism want write something based poem really like give credit cite simply write based poem scan poem grammatical spelling errors check words stop poem flowing smoothly either remove replace weak basic words replace create better imagery determine whether need sensory words remove read loud would like lastly would like family member friend read review poem well catch something sure specifically senses needed sure check punctuation well though punctuation varies poet poet review punctuation added removed impedes flow poem
 Original summary: how to the in poetry
 Predicted summary: how to write an effective screenplay
-``
+```
 
-``
+```
 Review #570: once hamster comfortable friend hold hamster correct position make sure underneath bright light able nails easily this probably work best friend face this hamsters paws pointing directly need talk trimming make sure keeps voices soft relaxed scare hamster shout talk loudly squirms give time relax attempting trim nails once still carefully place nail blades snip repeat nail again sure cutting quick once trimmed nails friend either hold loosely relax place back cage give hamster treats know good forget thank helper
 Original summary: how to trim hamster nails
 Predicted summary: how to care for newborn hamsters
-``
+```
