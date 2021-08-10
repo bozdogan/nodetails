@@ -48,5 +48,6 @@ A model can be trained with `train_model` utility as follows (150 is input lengt
 python trainmodel.py news_summary_more.csv 150 20 --save-dir {DATA_DIR}/_models --name news_summary --sum-col headlines --batch-size 64 --nrows 10
 ```
 
+The models we trained are stored at [our Drive folder](https://drive.google.com/drive/folders/1i4Ax8-OiEyFLTS0vdKFiS-xmHMQdkXzR?usp=sharing).
 
 More detailed usage is demonstrated in `usage.py`.
